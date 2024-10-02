@@ -23,7 +23,8 @@ class AreaResource extends Resource
     {
         return $form
             ->schema([
-                //
+                Forms\Components\TextInput::make('name')->required()->inlineLabel(),
+                Forms\Components\TextInput::make('description')->required()->inlineLabel()
             ]);
     }
 
@@ -31,7 +32,7 @@ class AreaResource extends Resource
     {
         return $table
             ->columns([
-                //
+                Tables\Columns\TextColumn::make('name')
             ])
             ->filters([
                 //
