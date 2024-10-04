@@ -23,7 +23,7 @@ jobs:
         coverage: none
 
     - name: Install Composer dependencies
-      run: composer install --no-dev --optimize-autoloader
+      run: composer update --no-dev --optimize-autoloader
 
     - name: Deploy to Main or Dev Subdomain
       if: github.ref == 'refs/heads/main' # Check if branch is main
