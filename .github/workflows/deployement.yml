@@ -1,0 +1,54 @@
+name: Deploy Laravel Application
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.0'
+        extensions: mbstring, pdo, gd, bcmath, zip
+        ini-values: post_max_size=256M, upload_max_filesize=256M
+        coverage: none
+
+    - name: Install Composer dependencies
+      run: composer install --no-dev --optimize-autoloader
+
+    - name: Deploy to Main or Dev Subdomain
+      if: github.ref == 'refs/heads/main' # Check if branch is main
+      uses: SamKirkland/FTP-Deploy-Action@4.1.0
+      with:
+        server: ${{ secrets.FTP_SERVER }}
+        username: ${{ secrets.FTP_USERNAME_MAIN }}
+        password: ${{ secrets.FTP_PASSWORD }}
+        local-dir: ./ # Your project directory
+        server-dir: ${{ secrets.DRMS_SERVER_DIRECTORY_MAIN }}/ # Subdomain directory on the server
+
+    - name: Deploy to Dev Subdomain
+      if: github.ref == 'refs/heads/dev' # Check if branch is dev
+      uses: SamKirkland/FTP-Deploy-Action@4.1.0
+      with:
+        server: ${{ secrets.FTP_SERVER_DEV }}
+        username: ${{ secrets.FTP_USERNAME }}
+        password: ${{ secrets.FTP_PASSWORD }}
+        local-dir: ./ # Your project directory
+        server-dir: ${{ secrets.DRMS_SERVER_DIRECTORY_MAIN }}/ # Subdomain directory on the server
+
+    - name: Clear Laravel Cache on Main
+      if: github.ref == 'refs/heads/main'
+      run: ssh username@main-server "php ${{ secrets.DRMS_SERVER_DIRECTORY_MAIN }}/artisan config:cache"
+
+    - name: Clear Laravel Cache on Dev
+      if: github.ref == 'refs/heads/dev'
+      run: ssh username@dev-server "php ${{ secrets.DRMS_SERVER_DIRECTORY_DEV }}/artisan config:cache"
