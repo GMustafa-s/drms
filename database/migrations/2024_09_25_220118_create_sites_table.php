@@ -10,8 +10,9 @@ return new class extends Migration {
         Schema::create('sites', function (Blueprint $table) {
             $table->id();
             $table->string('location');
-            $table->string('comments');
+            $table->string('comments')->nullable();
             $table->foreignId('area_id')->constrained('areas')->cascadeOnUpdate()->cascadeOnDelete();
+            $table->Boolean('is_published')->default(false);
             $table->timestamps();
         });
     }

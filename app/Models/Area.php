@@ -9,7 +9,8 @@ class Area extends Model
 {
     protected $fillable = [
         'name',
-        'description'
+        'description',
+        'is_published'
     ];
 
     public function sites(): HasMany

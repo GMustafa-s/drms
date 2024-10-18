@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Well extends Model
 {
@@ -14,11 +15,18 @@ class Well extends Model
         'rate',
         'based_on',
         'injection_point',
-        'comments'
+        'comments',
+        'site_id',
+        'is_published'
     ];
 
     public function site(): BelongsTo
     {
         return $this->belongsTo(Site::class);
     }
+    public function WellUsage(): HasMany
+    {
+        return $this->hasMany(WellUsage::class);
+    }
 }
+

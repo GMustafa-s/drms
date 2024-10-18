@@ -10,12 +10,14 @@ class Site extends Model
 {
     protected $fillable = [
         'location',
-        'comments'
+        'comments',
+        'area_id',
+        'is_published'
     ];
 
     public function area(): BelongsTo
     {
-        return $this->belongsTo(Area::class);
+        return $this->belongsTo(Area::class, 'area_id');
     }
 
     public function wells(): HasMany

@@ -10,13 +10,16 @@ return new class extends Migration {
         Schema::create('wells', function (Blueprint $table) {
             $table->id();
             $table->string('lease');
-            $table->string('chemical');
-            $table->string('chemical_type');
-            $table->string('rate');
-            $table->string('based_on');
-            $table->string('injection_point');
-            $table->string('comments');
+            $table->string('chemical')->nullable();
+            $table->string('gas_lift')->nullable();
+            $table->string('chemical_type')->nullable();
+            $table->string('ppm') ->nullable();
+            $table->string('ppg') ->nullable();
+            $table->string('based_on')->nullable();
+            $table->string('injection_point')->nullable();
+            $table->string('comments')->nullable();
             $table->foreignId('site_id')->constrained('sites')->cascadeOnUpdate()->cascadeOnDelete();
+            $table->Boolean('is_published')->default(false);
             $table->timestamps();
         });
     }

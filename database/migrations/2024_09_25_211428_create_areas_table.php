@@ -10,7 +10,8 @@ return new class extends Migration {
         Schema::create('areas', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->text('description');
+            $table->text('description')->nullable();
+            $table->Boolean('is_published')->default(false);
             $table->timestamps();
         });
     }
