@@ -25,7 +25,8 @@
         "laravel/socialite": "^5.16",
         "laravel/tinker": "*",
         "pxlrbt/filament-excel": "*",
-        "tapp/filament-invite": "*"
+        "tapp/filament-invite": "*",
+        "ext-pdo": "*"
     },
     "require-dev": {
         "fakerphp/faker": "*",
