@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\AreaResource\Pages;
 use App\Filament\Resources\AreaResource\RelationManagers;
 use App\Models\Area;
+use Filament\Actions\CreateAction;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -49,6 +50,7 @@ class AreaResource extends Resource
     {
         return $table
             ->headerActions([
+//                CreateAction::make('create'),
                 ExportAction::make()   // ...
             ])
             ->columns([

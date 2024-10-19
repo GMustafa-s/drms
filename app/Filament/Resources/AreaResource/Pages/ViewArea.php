@@ -9,4 +9,5 @@ use Filament\Resources\Pages\ViewRecord;
 class ViewArea extends ViewRecord
 {
     protected static string $resource = AreaResource::class;
+    protected static bool $isDiscovered = true;
 }
