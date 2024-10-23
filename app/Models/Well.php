@@ -19,7 +19,10 @@ class Well extends Model
         'site_id',
         'is_published'
     ];
-
+    public function company(): BelongsTo
+    {
+        return $this->belongsTo(Company::class);
+    }
     public function site(): BelongsTo
     {
         return $this->belongsTo(Site::class);

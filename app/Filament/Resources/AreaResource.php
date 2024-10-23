@@ -22,6 +22,7 @@ class AreaResource extends Resource
     protected static ?string $navigationGroup = 'Location Management';
     protected static ?string $navigationIcon = 'heroicon-o-map';
     protected static ?string $recordTitleAttribute = 'name';
+//    protected static ?string $tenantRelationshipName = 'company';
 
     public static function form(Form $form): Form
     {

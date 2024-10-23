@@ -31,6 +31,7 @@ class UserPanelProvider extends PanelProvider
             ->id('user')
             ->path('user')
             ->login()
+            ->registration()
             ->colors([
                 'primary' => Color::Amber,
             ])
@@ -42,6 +43,7 @@ class UserPanelProvider extends PanelProvider
                 MenuItem::make()
                     ->label('Company')
                     ->icon('heroicon-o-building-office')
+                    ->visible(fn (): bool => Auth::user()->personalCompany())
                     ->url(static fn () => url(Pages\Dashboard::getUrl(panel: 'company', tenant: Auth::user()->personalCompany()))),
             ])
             ->navigationItems([

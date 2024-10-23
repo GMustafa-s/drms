@@ -51,6 +51,11 @@ class WellUsage extends Model
 //        'bopd',
 //        'is_published'
 //    ];
+
+    public function company(): BelongsTo
+    {
+        return $this->belongsTo(Company::class);
+    }
     public function Well(): belongsTo
     {
          return $this->belongsTo(Well::class);

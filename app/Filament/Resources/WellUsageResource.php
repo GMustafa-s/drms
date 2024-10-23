@@ -27,6 +27,7 @@ class WellUsageResource extends Resource
     protected static ?string $model = WellUsage::class;
     protected static ?string $navigationGroup = 'Well Management';
     protected static ?string $navigationIcon = 'heroicon-o-document-arrow-up';
+    protected static ?string $tenantRelationshipName = 'company';
 
     public static function form(Form $form,): Form
     {

@@ -21,6 +21,7 @@ class WellResource extends Resource
     protected static ?string $model = Well::class;
     protected static ?string $navigationGroup = 'Well Management';
     protected static ?string $navigationIcon = 'heroicon-o-cube';
+    protected static ?string $tenantRelationshipName = 'company';
 
     public static function form(Form $form): Form
     {

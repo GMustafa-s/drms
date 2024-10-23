@@ -29,6 +29,7 @@ class SiteResource extends Resource
     protected static ?string $recordTitleAttribute = 'location';
     protected static ?string $navigationGroup = "Location Management";
     protected static ?string $navigationIcon = 'heroicon-o-map-pin';
+//    protected static ?string $tenantRelationshipName = 'company';
 
     public static function form(Form $form): Form
     {

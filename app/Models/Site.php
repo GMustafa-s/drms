@@ -14,7 +14,10 @@ class Site extends Model
         'area_id',
         'is_published'
     ];
-
+    public function company(): BelongsTo
+    {
+        return $this->belongsTo(Company::class);
+    }
     public function area(): BelongsTo
     {
         return $this->belongsTo(Area::class, 'area_id');

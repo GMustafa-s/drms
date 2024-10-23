@@ -20,7 +20,6 @@ class Company extends FilamentCompaniesCompany implements HasAvatar
      */
     protected $fillable = [
         'name',
-        'slug',
         'personal_company',
     ];
 
@@ -51,28 +50,4 @@ class Company extends FilamentCompaniesCompany implements HasAvatar
     {
         return $this->owner->profile_photo_url;
     }
-    // Area Relationship
-    public function areas(): \Illuminate\Database\Eloquent\Relations\HasMany
-    {
-        return $this->hasMany(Area::class);
-    }
-
-    // Site Relationship
-    public function sites(): \Illuminate\Database\Eloquent\Relations\HasMany
-    {
-        return $this->hasMany(Site::class);
-    }
-
-    // Well Relationship
-    public function wells(): \Illuminate\Database\Eloquent\Relations\HasMany
-    {
-        return $this->hasMany(Well::class);
-    }
-
-    // WellUsage Relationship
-    public function wellUsage(): \Illuminate\Database\Eloquent\Relations\HasMany
-    {
-        return $this->hasMany(WellUsage::class);
-    }
-
 }

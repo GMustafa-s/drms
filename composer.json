@@ -7,8 +7,10 @@
     "require": {
         "php": "^8.2",
         "ext-bcmath": "*",
+        "ext-pdo": "*",
         "andrewdwallo/filament-companies": "*",
         "awcodes/recently": "*",
+        "bezhansalleh/filament-shield": "^3.2",
         "eightynine/filament-reports": "*",
         "filament/filament": "*",
         "filament/forms": "*",
@@ -25,8 +27,7 @@
         "laravel/socialite": "^5.16",
         "laravel/tinker": "*",
         "pxlrbt/filament-excel": "*",
-        "tapp/filament-invite": "*",
-        "ext-pdo": "*"
+        "tapp/filament-invite": "*"
     },
     "require-dev": {
         "fakerphp/faker": "*",
