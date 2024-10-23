@@ -42,8 +42,7 @@ class WellResource extends Resource
                                         Forms\Components\TextInput::make('chemical_type')
                                             ->required()
                                             ->maxLength(255),
-                                        Forms\Components\TextInput::make('ppm')
-                                            ->label('PPM Rate')
+                                        Forms\Components\TextInput::make('rate')
                                             ->numeric()
                                             ->required()
                                             ->maxLength(255),
@@ -106,7 +105,7 @@ class WellResource extends Resource
                     ->searchable(),
                 Tables\Columns\TextColumn::make('chemical_type')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('ppm')
+                Tables\Columns\TextColumn::make('rate')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('based_on')
                     ->searchable(),
@@ -155,7 +154,7 @@ class WellResource extends Resource
     {
         return [
             'index' => Pages\ListWells::route('/'),
-//            'view' => Pages\ViewWell::route('/{record}'),
+            'view' => Pages\ViewWell::route('/{record}'),
             'create' => Pages\CreateWell::route('/create'),
             'edit' => Pages\EditWell::route('/{record}/edit'),
         ];

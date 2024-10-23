@@ -69,7 +69,6 @@ class SitesRelationManager extends RelationManager
             ->headerActions([
                 Tables\Actions\CreateAction::make(),
                 ExportAction::make()
-
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),

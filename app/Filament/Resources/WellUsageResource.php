@@ -3,8 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\WellUsageResource\Pages;
-//use App\Filament\Resources\WellUsageResource\RelationManagers;
-use App\Models\Well;
+use App\Filament\Resources\WellUsageResource\RelationManagers;
 use App\Models\WellUsage;
 use Closure;
 use Filament\Forms;
@@ -355,7 +354,7 @@ class WellUsageResource extends Resource
     {
         return [
             'index' => Pages\ListWellUsages::route('/'),
-//            'view' => Pages\ViewWellUsage::route('/{record}'),
+            'view' => Pages\ViewWellUsage::route('/{record}'),
             'create' => Pages\CreateWellUsage::route('/create'),
             'edit' => Pages\EditWellUsage::route('/{record}/edit'),
         ];
@@ -410,12 +409,11 @@ class WellUsageResource extends Resource
 
     protected static function populatePpmFromWell(callable $get, callable $set)
     {
-        $well = Well::find($get('well_id'));
+        $well = \App\Models\Well::find($get('well_id'));
 
         if ($well) {
             // Set the 'ppm' value from the related Well model's 'rate' field
-            $set('ppm', $well->ppm);
-            $set('injection_location', $well->injection_point);
+            $set('ppm', $well->rate);
         } else {
             $set('ppm', 0);
         }

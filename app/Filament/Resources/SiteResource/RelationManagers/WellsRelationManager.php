@@ -2,10 +2,8 @@
 
 namespace App\Filament\Resources\SiteResource\RelationManagers;
 
-use Filament\Actions\CreateAction;
 use Filament\Forms;
 use Filament\Forms\Form;
-use Filament\Infolists\Components\Actions\Action;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -14,26 +12,7 @@ use pxlrbt\FilamentExcel\Actions\Tables\ExportAction;
 class WellsRelationManager extends RelationManager
 {
     protected static string $relationship = 'Wells';
-    public static function getActions(): array
-    {
-        return [
-            CreateAction::make()
-                ->label('Create New Well Usage')  // Customize the button label
-                ->color('primary')  // Customize the button color
-                ->icon('heroicon-o-plus'),  // Add an icon (optional)
 
-            // Custom action example
-            Action::make('customReport')
-                ->label('Generate Report')
-                ->action(function () {
-                    // Define the custom action logic here
-                    // e.g., generate a report or redirect to another page
-                })
-                ->icon('heroicon-o-document-report')
-                ->requiresConfirmation()  // Optional: Add a confirmation dialog before executing
-                ->color('success'),  // Optional: Change the button color
-        ];
-    }
     public function form(Form $form): Form
     {
         return $form
@@ -131,7 +110,6 @@ class WellsRelationManager extends RelationManager
             ])
             ->headerActions([
 //
-                Tables\Actions\CreateAction::make(),
                 ExportAction::make(),
             ])
             ->actions([

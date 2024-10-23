@@ -5,40 +5,36 @@
     "keywords": ["laravel", "framework"],
     "license": "MIT",
     "require": {
-        "php": "^8.2",
-        "ext-bcmath": "*",
-        "andrewdwallo/filament-companies": "*",
-        "awcodes/recently": "*",
-        "eightynine/filament-reports": "*",
-        "filament/filament": "*",
-        "filament/forms": "*",
+        "php": "^8.1",
+        "awcodes/recently": "^1.0",
+        "eightynine/filament-reports": "^3.0",
+        "filament/filament": "^3.2",
+        "filament/forms": "^3.2",
         "filament/infolists": "*",
-        "filament/tables": "*",
-        "flowframe/laravel-trend": "*",
-        "guzzlehttp/guzzle": "*",
-        "howdu/filament-record-switcher": "*",
-        "invaders-xx/filament-gridstack-dashboard": "*",
-        "joaopaulolndev/filament-edit-profile": "*",
-        "joaopaulolndev/filament-general-settings": "*",
-        "laravel/framework": "*",
-        "laravel/sanctum": "^4.0",
-        "laravel/socialite": "^5.16",
-        "laravel/tinker": "*",
-        "pxlrbt/filament-excel": "*",
-        "tapp/filament-invite": "*",
-        "ext-pdo": "*"
+        "filament/tables": "^3.2",
+        "flowframe/laravel-trend": "^0.3.0",
+        "guzzlehttp/guzzle": "^7.2",
+        "howdu/filament-record-switcher": "^1.0",
+        "invaders-xx/filament-gridstack-dashboard": "^1.9",
+        "joaopaulolndev/filament-edit-profile": "^1.0",
+        "joaopaulolndev/filament-general-settings": "^1.0",
+        "laravel/framework": "^10.10",
+        "laravel/sanctum": "^3.3",
+        "laravel/tinker": "^2.8",
+        "pxlrbt/filament-excel": "^2.3",
+        "tapp/filament-invite": "^1.0",
+        "ext-bcmath": "*"
     },
     "require-dev": {
-        "fakerphp/faker": "*",
-        "laravel/pint": "*",
-        "laravel/sail": "*",
-        "mockery/mockery": "*",
-        "nunomaduro/collision": "*",
-        "phpunit/phpunit": "*",
-        "spatie/laravel-ignition": "*",
-        "tomatophp/filament-helpers": "*"
+        "fakerphp/faker": "^1.9.1",
+        "laravel/pint": "^1.0",
+        "laravel/sail": "^1.18",
+        "mockery/mockery": "^1.4.4",
+        "nunomaduro/collision": "^7.0",
+        "phpunit/phpunit": "^10.1",
+        "spatie/laravel-ignition": "^2.0",
+        "tomatophp/filament-helpers": "^1.0"
     },
-
     "autoload": {
         "psr-4": {
             "App\\": "app/",
@@ -64,13 +60,7 @@
             "@php -r \"file_exists('.env') || copy('.env.example', '.env');\""
         ],
         "post-create-project-cmd": [
-            "@php artisan key:generate --ansi",
-            "@php -r \"file_exists('database/database.sqlite') || touch('database/database.sqlite');\"",
-            "@php artisan migrate --graceful --ansi"
-        ],
-        "dev": [
-            "Composer\\Config::disableProcessTimeout",
-            "npx concurrently -c \"#93c5fd,#c4b5fd,#fb7185,#fdba74\" \"php artisan serve\" \"php artisan queue:listen --tries=1\" \"php artisan pail\" \"npm run dev\" --names=server,queue,logs,vite"
+            "@php artisan key:generate --ansi"
         ]
     },
     "extra": {

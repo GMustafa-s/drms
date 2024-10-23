@@ -12,7 +12,6 @@ class ViewSite extends ViewRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\CreateAction::make(),
             Actions\DeleteAction::make(),
             Actions\EditAction::make(),
         ];

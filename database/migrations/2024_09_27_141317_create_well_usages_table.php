@@ -43,26 +43,26 @@ return new class extends Migration {
 
 
 
-//            $table->id();
-//            $table->foreignId('well_id')->constrained('wells')->cascadeOnDelete()->cascadeOnUpdate();
-//            $table->string('product_name');
-//            $table->string('product_type');
-//            $table->string('injection_location');
-//            $table->string('ppm');
-//            $table->string('quarts_per_day');
-//            $table->string('gallons_per_day');
-//            $table->string('gallons_per_month');
-//            $table->string('location');
-//            $table->string('program');
-//            $table->string('delivery_per_gallon');
-//            $table->string('ppg');
-//            $table->string('monthly_cost');
-//            $table->string('bwe');
-//            $table->string('bowg');
-//            $table->string('production_location');
-//            $table->string('bopd');
-//            $table->Boolean('is_published')->default(false);
-//            $table->timestamps();
+            $table->id();
+            $table->foreignId('well_id')->constrained('wells')->cascadeOnDelete()->cascadeOnUpdate();
+            $table->string('product_name');
+            $table->string('product_type');
+            $table->string('injection_location');
+            $table->string('ppm');
+            $table->string('quarts_per_day');
+            $table->string('gallons_per_day');
+            $table->string('gallons_per_month');
+            $table->string('location');
+            $table->string('program');
+            $table->string('delivery_per_gallon');
+            $table->string('ppg');
+            $table->string('monthly_cost');
+            $table->string('bwe');
+            $table->string('bowg');
+            $table->string('production_location');
+            $table->string('bopd');
+            $table->Boolean('is_published')->default(false);
+            $table->timestamps();
         });
     }
 

@@ -12,7 +12,7 @@ class Well extends Model
         'lease',
         'chemical',
         'chemical_type',
-        'ppm',
+        'rate',
         'based_on',
         'injection_point',
         'comments',
