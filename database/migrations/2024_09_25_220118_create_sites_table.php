@@ -9,6 +9,7 @@ return new class extends Migration {
     {
         Schema::create('sites', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('company_id')->constrained()->cascadeOnDelete();
             $table->string('location');
             $table->string('comments')->nullable();
             $table->foreignId('area_id')->constrained('areas')->cascadeOnUpdate()->cascadeOnDelete();

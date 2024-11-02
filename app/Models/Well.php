@@ -17,6 +17,7 @@ class Well extends Model
         'injection_point',
         'comments',
         'site_id',
+        'company_id',
         'is_published'
     ];
 
@@ -24,9 +25,17 @@ class Well extends Model
     {
         return $this->belongsTo(Site::class);
     }
+    public function wellUsages(): HasMany
+    {
+        return $this->hasMany(WellUsage::class);
+    }
     public function WellUsage(): HasMany
     {
         return $this->hasMany(WellUsage::class);
+    }
+    public function company(): BelongsTo
+    {
+        return $this->belongsTo(Company::class);
     }
 }
 

@@ -2,15 +2,22 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Pages\Tenancy\EditCompanyProfile;
+use App\Filament\Pages\Tenancy\RegisterCompany;
+use App\Models\Company;
 use EightyNine\Reports\ReportsPlugin;
+use Exception;
+use Filament\Facades\Filament;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
+use Filament\Navigation\MenuItem;
 use Filament\Pages;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
 use Filament\Widgets;
+use Howdu\FilamentRecordSwitcher\FilamentRecordSwitcherPlugin;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
@@ -18,22 +25,22 @@ use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\AuthenticateSession;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
-use Joaopaulolndev\FilamentEditProfile\FilamentEditProfilePlugin;use Joaopaulolndev\FilamentGeneralSettings\FilamentGeneralSettingsPlugin;use Howdu\FilamentRecordSwitcher\FilamentRecordSwitcherPlugin;
-
-
-
+use Joaopaulolndev\FilamentEditProfile\FilamentEditProfilePlugin;
+use Joaopaulolndev\FilamentGeneralSettings\FilamentGeneralSettingsPlugin;
 
 class AdminPanelProvider extends PanelProvider
 {
+    /**
+     * @throws Exception
+     */
     public function panel(Panel $panel): Panel
     {
         return $panel
             ->default()
             ->id('admin')
-            ->path('admin')
+            ->path('/')
             ->login()
-            ->profile()
-            ->profile()
+            ->default()
             ->colors([
                 'primary' => Color::Amber,
             ])
@@ -41,11 +48,10 @@ class AdminPanelProvider extends PanelProvider
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
             ->pages([
                 Pages\Dashboard::class,
-
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->widgets([
-//                Widgets\AccountWidget::class,
+                Widgets\AccountWidget::class,
 //                Widgets\FilamentInfoWidget::class,
             ])
             ->middleware([
@@ -58,11 +64,8 @@ class AdminPanelProvider extends PanelProvider
                 SubstituteBindings::class,
                 DisableBladeIconComponents::class,
                 DispatchServingFilamentEvent::class,
-            ])
-            ->authMiddleware([
-                Authenticate::class,
-            ])
 
+            ])
             ->plugins([
                 FilamentEditProfilePlugin::make()
                     ->setSort(8)
@@ -71,7 +74,7 @@ class AdminPanelProvider extends PanelProvider
                     ->setTitle('Edit Profile')
                     ->setNavigationLabel('Edit Profile'),
                 FilamentGeneralSettingsPlugin::make()
-//                    ->canAccess(fn() => auth()->user()->id === 1)
+                    ->canAccess(fn() => auth()->user()->hasRole('Super Admin'))
                     ->setSort(8)
                     ->setIcon('heroicon-o-cog')
                     ->setNavigationGroup('Settings')
@@ -80,9 +83,28 @@ class AdminPanelProvider extends PanelProvider
                 FilamentRecordSwitcherPlugin::make(),
                 ReportsPlugin::make(),
 
-
             ])
-            ->authGuard('admin');
+            ->tenant(Company::class, slugAttribute: 'slug', ownershipRelationship: 'company')
+            ->tenantRegistration(RegisterCompany::class)
+            ->tenantProfile(EditCompanyProfile::class)
+            // Add other panel configurations here
+            ->tenantMenuItems([
+                'profile' => MenuItem::make()
+                    ->visible(fn (): bool => auth()->user()->hasRole('Super Admin'))
+                    // or using hidden method
+                    ->hidden(fn (): bool => ! auth()->user()->hasRole('Super Admin')),
+
+                'register' => MenuItem::make()
+                    ->visible(fn (): bool => auth()->user()->hasRole('Super Admin'))
+                    // or using hidden method
+                    ->hidden(fn (): bool => ! auth()->user()->hasRole('Super Admin')),
+                // ...
+            ])
+        ->authMiddleware([
+                Authenticate::class,
+            ]);
+
 
     }
+
 }

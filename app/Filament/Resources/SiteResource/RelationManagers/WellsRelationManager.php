@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources\SiteResource\RelationManagers;
 
+use Filament\Actions\CreateAction;
+use Filament\Facades\Filament;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
@@ -50,10 +52,12 @@ class WellsRelationManager extends RelationManager
                                             ->schema([
 
                                                 Forms\Components\MarkdownEditor::make('Comments')
-                                                    ->required()
+//                                                    ->required()
                                                     ->columnSpanFull()
                                                     ->maxLength(255),
 
+                                                Forms\Components\Hidden::class::make('company_id')
+                                                    ->default(fn() => Filament::getTenant()->id ?? null),
                                                 Forms\Components\Toggle::make('is_published')
                                                     ->label('Status')
                                                     ->default(true)
@@ -110,6 +114,7 @@ class WellsRelationManager extends RelationManager
             ])
             ->headerActions([
 //
+                Tables\Actions\CreateAction::make(),
                 ExportAction::make(),
             ])
             ->actions([

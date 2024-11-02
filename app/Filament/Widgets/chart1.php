@@ -3,6 +3,7 @@
 namespace App\Filament\Widgets;
 
 use App\Models\Site;
+use Filament\Facades\Filament;
 use Filament\Widgets\ChartWidget;
 use Flowframe\Trend\Trend;
 use Flowframe\Trend\TrendValue;
@@ -13,7 +14,14 @@ class chart1 extends ChartWidget
 
     protected function getData(): array
     {
-        $data = Trend::model(Site::class)
+        // Get the current tenant
+        $tenant = Filament::getTenant();
+
+        // Filter the Site data by tenant first
+        $query = Site::where('company_id', $tenant->id);
+
+        // Pass the filtered query to Trend
+        $data = Trend::query($query)
             ->between(
                 start: now()->startOfYear(),
                 end: now()->endOfYear(),

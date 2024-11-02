@@ -10,6 +10,8 @@ class WellUsage extends Model
 
     // Chemical Injection Points Section
     protected $fillable = [
+        'company_id',
+        'well_id',
         'product_type', // Type of chemical product (e.g., Cor/Scale/FeS Inh)
         'product_name', // Name of the product used for injection
         'injection_location', // Injection location (e.g., Silverton 1H Flowline)
@@ -28,7 +30,8 @@ class WellUsage extends Model
         'bopd', // Barrels of Oil Per Day (BOPD)
         'mmcf', // Million Cubic Feet (MMCF)
         'bwpd', // Barrels of Water Per Day (BWPD)
-        'is_published'
+        'is_published',
+        'created_at'
     ];
 
 //    protected $fillable =[
@@ -54,6 +57,10 @@ class WellUsage extends Model
     public function Well(): belongsTo
     {
          return $this->belongsTo(Well::class);
+    }
+    public function company(): BelongsTo
+    {
+        return $this->belongsTo(Company::class);
     }
 
 }

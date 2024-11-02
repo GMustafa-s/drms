@@ -5,6 +5,7 @@ namespace App\Filament\Reports;
 use EightyNine\Reports\Components\Text;
 use EightyNine\Reports\Enums\FontSize;
 use EightyNine\Reports\Report;
+use App\Models\Well;
 use App\Models\WellUsage;
 use EightyNine\Reports\Components\Body;
 use EightyNine\Reports\Components\Body\TextColumn;
@@ -12,14 +13,13 @@ use EightyNine\Reports\Components\Footer;
 use EightyNine\Reports\Components\Header;
 use EightyNine\Reports\Components\VerticalSpace;
 use Filament\Forms\Components\Select;
-use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Form;
 use Carbon\Carbon;
 
 class UsersReport extends Report
 {
     public ?string $heading = "Well Usage Report";
-    public ?string $subHeading = "Detailed report of well usage data";
+    public ?string $subHeading = "Detailed report of well and its usage data";
 
     public function header(Header $header): Header
     {
@@ -32,7 +32,7 @@ class UsersReport extends Report
                                 Text::make("Well Usage Report")
                                     ->title()
                                     ->primary(),
-                                Text::make("This report provides detailed information on well usage, including product details, usage metrics, and associated costs.")
+                                Text::make("This report provides detailed information about a selected well and its usage records.")
                                     ->subtitle(),
                             ]),
                         Header\Layout\HeaderColumn::make()
@@ -47,27 +47,29 @@ class UsersReport extends Report
             ->schema([
                 Body\Layout\BodyColumn::make()
                     ->schema([
-                        Text::make('Product Details Table')->title()->fontSize(FontSize::Lg),
+                        // Well Details Section
+                        Text::make('Well Details')->title()->fontSize(FontSize::Lg),
                         Body\Table::make()
                             ->columns([
-                                TextColumn::make('id')->label('Sr. No'),
-                                TextColumn::make('well.name')->label('Well Name'),
-                                TextColumn::make('product_name')->label('Product Name'),
-                                TextColumn::make('product_type')->label('Product Type'),
-                                TextColumn::make('injection_location')->label('Injection Location'),
+                                TextColumn::make('id')->label('Well ID'),
+                                TextColumn::make('lease')->label('Well Name'),
+                                TextColumn::make('chemical')->label('chemical'),
+                                TextColumn::make('chemical_type')->label('Chemical Type'),
+                                TextColumn::make('rate')->label('PPM (rate)'),
+                                TextColumn::make('based_on')->label('Based On'),
+                                TextColumn::make('based_on')->label('Based On'),
                             ])
                             ->data(
-                                fn(?array $filters) => WellUsage::query()
-                                    ->when($filters['from'] ?? null, fn($query, $from) => $query->whereDate('created_at', '>=', Carbon::parse($from)))
-                                    ->when($filters['until'] ?? null, fn($query, $until) => $query->whereDate('created_at', '<=', Carbon::parse($until)))
-                                    ->when($filters['product_type'] ?? null, fn($query, $productType) => $query->where('product_type', $productType))
-                                    ->get()
+                                fn(?array $filters) => $this->getWellDetails($filters['well_id'] ?? null)
                             ),
                         VerticalSpace::make(),
-                        Text::make('Usage Metrics Table')->title()->primary(),
+                        // Well Usage Data Section
+                        Text::make('Well Usage Data')->title()->primary(),
                         Body\Table::make()
                             ->columns([
-                                TextColumn::make('id')->label('Sr. No'),
+                                TextColumn::make('id')->label('Usage ID'),
+                                TextColumn::make('product_name')->label('Product Name'),
+                                TextColumn::make('product_type')->label('Product Type'),
                                 TextColumn::make('ppm')->label('PPM'),
                                 TextColumn::make('quarts_per_day')->label('Quarts/Day'),
                                 TextColumn::make('gallons_per_day')->label('Gallons/Day'),
@@ -78,11 +80,7 @@ class UsersReport extends Report
                                 TextColumn::make('created_at')->label('Date Created')->date(),
                             ])
                             ->data(
-                                fn(?array $filters) => WellUsage::query()
-                                    ->when($filters['from'] ?? null, fn($query, $from) => $query->whereDate('created_at', '>=', Carbon::parse($from)))
-                                    ->when($filters['until'] ?? null, fn($query, $until) => $query->whereDate('created_at', '<=', Carbon::parse($until)))
-                                    ->when($filters['product_type'] ?? null, fn($query, $productType) => $query->where('product_type', $productType))
-                                    ->get()
+                                fn(?array $filters) => $this->getWellUsages($filters['well_id'] ?? null)
                             ),
                     ])
             ]);
@@ -110,14 +108,33 @@ class UsersReport extends Report
     {
         return $form
             ->schema([
-                DatePicker::make('from')->label('From Date'),
-                DatePicker::make('until')->label('Until Date'),
-                Select::make('product_type')->label('Product Type')
-                    ->options([
-                        'Chemical A' => 'Chemical A',
-                        'Chemical B' => 'Chemical B',
-                        'Chemical C' => 'Chemical C',
-                    ]),
+                Select::make('well_id')->label('Select Well')
+                    ->options(Well::query()->get()->pluck('lease', 'id')) // Fetch well names and IDs
+                    ->searchable() // Make it searchable for convenience
+                    ->required(), // Make well selection mandatory
             ]);
+    }
+
+    // Function to get Well details based on selected Well ID
+    private function getWellDetails(?int $wellId): \Illuminate\Database\Eloquent\Collection|\Illuminate\Support\Collection
+    {
+        if ($wellId) {
+            return Well::query()
+                ->where('id', $wellId)
+                ->get();
+        }
+        return collect(); // Return an empty collection if no well is selected
+    }
+
+    // Function to get Well Usage data based on selected Well ID
+    private function getWellUsages(?int $wellId): \Illuminate\Database\Eloquent\Collection|\Illuminate\Support\Collection
+    {
+        if ($wellId) {
+            return WellUsage::query()
+                ->with('well')
+                ->where('well_id', $wellId)
+                ->get();
+        }
+        return collect(); // Return an empty collection if no well is selected
     }
 }

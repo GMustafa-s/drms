@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use BezhanSalleh\FilamentShield\Traits\HasPanelShield;
 use Filament\Models\Contracts\HasAvatar;
 use Filament\Models\Contracts\HasName;
 use Illuminate\Database\Eloquent\Model;
@@ -9,10 +10,13 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\HasApiTokens;
+use Spatie\Permission\Traits\HasRoles;
 
 class Admin extends Authenticatable implements HasName, HasAvatar
 {
     use HasApiTokens, Notifiable;
+    use HasRoles;
+    use HasPanelShield;
 
     protected $fillable = [
         'name',
@@ -29,6 +33,10 @@ class Admin extends Authenticatable implements HasName, HasAvatar
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
     ];
+
+    public static function factory(array $array)
+    {
+    }
 
     public function getFilamentName(): string
     {

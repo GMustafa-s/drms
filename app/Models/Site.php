@@ -12,6 +12,7 @@ class Site extends Model
         'location',
         'comments',
         'area_id',
+        'company_id',
         'is_published'
     ];
 
@@ -23,5 +24,9 @@ class Site extends Model
     public function wells(): HasMany
     {
         return $this->hasMany(Well::class);
+    }
+    public function company(): BelongsTo
+    {
+        return $this->belongsTo(Company::class);
     }
 }

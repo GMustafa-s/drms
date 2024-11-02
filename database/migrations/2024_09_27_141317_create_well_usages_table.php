@@ -9,6 +9,7 @@ return new class extends Migration {
     {
         Schema::create('well_usages', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('company_id')->constrained('companies')->cascadeOnDelete();
             $table->foreignId('well_id')->constrained('wells')->cascadeOnDelete()->cascadeOnUpdate();
             // Chemical Injection Points Section
             $table->string('product_type'); // Type of chemical product (e.g., Cor/Scale/FeS Inh)
@@ -16,7 +17,7 @@ return new class extends Migration {
             $table->string('injection_location'); // Injection location (e.g., Silverton 1H Flowline)
 
             // Continuous Applications Section
-            $table->integer('ppm'); // Parts Per Million for the chemical
+            $table->integer('ppm')->nullable()->default('0'); // Parts Per Million for the chemical
             $table->decimal('quarts_per_day', 10, 2); // Usage in quarts per day
             $table->decimal('gallons_per_day', 10, 2); // Usage in gallons per day
             $table->decimal('gallons_per_month', 10, 2); // Usage in gallons per month
@@ -42,27 +43,27 @@ return new class extends Migration {
 
 
 
-
-            $table->id();
-            $table->foreignId('well_id')->constrained('wells')->cascadeOnDelete()->cascadeOnUpdate();
-            $table->string('product_name');
-            $table->string('product_type');
-            $table->string('injection_location');
-            $table->string('ppm');
-            $table->string('quarts_per_day');
-            $table->string('gallons_per_day');
-            $table->string('gallons_per_month');
-            $table->string('location');
-            $table->string('program');
-            $table->string('delivery_per_gallon');
-            $table->string('ppg');
-            $table->string('monthly_cost');
-            $table->string('bwe');
-            $table->string('bowg');
-            $table->string('production_location');
-            $table->string('bopd');
-            $table->Boolean('is_published')->default(false);
-            $table->timestamps();
+//
+//            $table->id();
+//            $table->foreignId('well_id')->constrained('wells')->cascadeOnDelete()->cascadeOnUpdate();
+//            $table->string('product_name');
+//            $table->string('product_type');
+//            $table->string('injection_location');
+//            $table->string('ppm');
+//            $table->string('quarts_per_day');
+//            $table->string('gallons_per_day');
+//            $table->string('gallons_per_month');
+//            $table->string('location');
+//            $table->string('program');
+//            $table->string('delivery_per_gallon');
+//            $table->string('ppg');
+//            $table->string('monthly_cost');
+//            $table->string('bwe');
+//            $table->string('bowg');
+//            $table->string('production_location');
+//            $table->string('bopd');
+//            $table->Boolean('is_published')->default(false);
+//            $table->timestamps();
         });
     }
 

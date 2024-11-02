@@ -9,11 +9,12 @@ return new class extends Migration {
     {
         Schema::create('wells', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('company_id')->constrained('companies')->cascadeOnDelete()->cascadeOnUpdate();
             $table->string('lease');
             $table->string('chemical')->nullable();
             $table->string('gas_lift')->nullable();
             $table->string('chemical_type')->nullable();
-            $table->string('ppm') ->nullable();
+            $table->string('rate') ->nullable();
             $table->string('ppg') ->nullable();
             $table->string('based_on')->nullable();
             $table->string('injection_point')->nullable();

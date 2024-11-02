@@ -3,41 +3,59 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\UserResource\Pages;
-use App\Filament\Resources\UserResource\RelationManagers;
+use App\Models\Company;
+use App\Models\Role;
 use App\Models\User;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Columns\TagsColumn;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class UserResource extends Resource
 {
     protected static ?string $model = User::class;
 
     protected static ?string $navigationGroup = 'System Management';
-    protected static ?string $navigationLabel = 'Clients';
     protected static ?int $navigationSort = 8;
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
-
+    protected static ?string $navigationIcon = 'heroicon-o-user';
+    protected static bool $isScopedToTenant = false;
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
                 Forms\Components\TextInput::make('name')
-                    ->required()
-                    ->maxLength(255),
+                    ->required(),
+
                 Forms\Components\TextInput::make('email')
                     ->email()
-                    ->required()
-                    ->maxLength(255),
-                Forms\Components\DateTimePicker::make('email_verified_at'),
+                    ->required(),
+
                 Forms\Components\TextInput::make('password')
                     ->password()
-                    ->required()
-                    ->maxLength(255),
+                    ->required(),
+
+                // Hidden field to auto-assign the current user's company
+                Forms\Components\Select::make('companies')
+                    ->label('Assign Companies')
+                    ->multiple()
+                    ->searchable()
+                    ->preload()
+                    ->native(false)
+                    ->relationship('companies', 'name')
+                    ->options(Company::all()->pluck('name', 'id'))
+                    ->required(),
+                // Add this MultiSelect field for Role Assignment
+                Forms\Components\MultiSelect::make('roles')
+                    ->label('Assign Roles')
+                    ->multiple()
+                    ->searchable()
+                    ->preload()
+                    ->native(false)
+                    ->relationship('roles', 'name') // Use relationship method
+                    ->options(Role::all()->pluck('name', 'id')) // Display available roles
+                    ->required(),
             ]);
     }
 
@@ -45,28 +63,29 @@ class UserResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('name')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('email')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('email_verified_at')
-                    ->dateTime()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('created_at')
-                    ->dateTime()
+                Tables\Columns\TextColumn::make('name'),
+                Tables\Columns\TextColumn::make('email'),
+
+                // Display assigned roles
+                Tables\Columns\BadgeColumn::make('roles.name')
+                    ->label('Roles'),
+                // Display assigned roles
+                TagsColumn::make('companies')
+                    ->label('Assigned Companies')
+                    ->getStateUsing(function ($record) {
+                        // Assuming $record->companies gives you the related companies
+                        return $record->companies->pluck('name')->toArray();
+                    })
                     ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('updated_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->searchable(),
             ])
             ->filters([
                 //
             ])
             ->actions([
+                Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
-
+                Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -91,4 +110,18 @@ class UserResource extends Resource
         ];
     }
 
+
+    public static function can($action, $record = null): bool
+    {
+        $user = auth()->user();
+
+        // Super Admin has full access
+        if ($user->hasRole('Super Admin')) {
+            return true;
+        }
+
+
+        // Other users do not have any access
+        return false;
+    }
 }

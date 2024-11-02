@@ -11,5 +11,11 @@ class ViewWellUsage extends ViewRecord
 {
     protected static string $resource = WellUsageResource::class;
     protected static ?string $title = 'Well Usage';
-
+    protected function getHeaderActions(): array
+    {
+        return [
+            Actions\DeleteAction::make(),
+            Actions\EditAction::make(),
+        ];
+    }
 }

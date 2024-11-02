@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\WellResource\Widgets;
 
+use App\Filament\Resources\WellResource;
 use Filament\Widgets\ChartWidget;
 
 class WellChart extends ChartWidget

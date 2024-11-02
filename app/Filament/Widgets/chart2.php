@@ -1,54 +1,62 @@
 <?php
-
 namespace App\Filament\Widgets;
 
 use App\Models\Well;
+use App\Models\WellUsage;
+use Filament\Facades\Filament;
 use Filament\Widgets\ChartWidget;
 use Flowframe\Trend\Trend;
 use Flowframe\Trend\TrendValue;
 
-class chart2 extends ChartWidget
+class Chart2 extends ChartWidget
 {
     protected static ?string $heading = 'Wells / Usages Chart';
 
     public function getData(): array
     {
-        $data = Trend::model(Well::class)
+        // Get the current tenant
+        $tenant = Filament::getTenant();
+
+        // Filter the Well and WellUsage models by tenant
+        $wellQuery = Well::where('company_id', $tenant->id);
+        $wellUsageQuery = WellUsage::where('company_id', $tenant->id);
+
+        // Pass the filtered queries to Trend
+        $data = Trend::query($wellQuery)
             ->between(
                 start: now()->subYear(),
                 end: now(),
             )
             ->perMonth()
             ->count();
-        $dataUSage = Trend::model(\App\Models\WellUsage::class)
+
+        $dataUsage = Trend::query($wellUsageQuery)
             ->between(
-                start: now()->subyear(),
+                start: now()->subYear(),
                 end: now(),
             )
             ->perMonth()
             ->count();
+
         return [
-            'datasets' =>
+            'datasets' => [
                 [
-                    [
-                        'label' => "Well by Month",
-//                        'backgroundColor' => "success",
-//                        'borderColor' => "",
-                        'data' =>$data->map(fn (TrendValue $value) => $value->aggregate),
-                    ],
-                    [
-                        'label' => "Usage by Month",
-                        'backgroundColor' => "limegreen",
-                        'borderColor' => "Green",
-                        'pointBackgroundColor' => "success",
-                        'pointBorderColor' => "success",
-                        'pointHoverBackgroundColor' => "success",
-                        'pointHoverBorderColor' => "success",
-                        'width' => '13',
-                        'data' =>$dataUSage->map(fn (TrendValue $value) => $value->aggregate),
-                    ]
+                    'label' => "Well by Month",
+                    'data' => $data->map(fn (TrendValue $value) => $value->aggregate),
                 ],
-            'labels' =>$data->map(fn (TrendValue $value) => $value->date),
+                [
+                    'label' => "Usage by Month",
+                    'backgroundColor' => "limegreen",
+                    'borderColor' => "Green",
+                    'pointBackgroundColor' => "success",
+                    'pointBorderColor' => "success",
+                    'pointHoverBackgroundColor' => "success",
+                    'pointHoverBorderColor' => "success",
+                    'width' => '13',
+                    'data' => $dataUsage->map(fn (TrendValue $value) => $value->aggregate),
+                ]
+            ],
+            'labels' => $data->map(fn (TrendValue $value) => $value->date),
         ];
     }
 
@@ -56,16 +64,23 @@ class chart2 extends ChartWidget
     {
         return 'bar';
     }
-    public function getFilters(): ?array
-    {$data = Trend::model(Well::class)
-        ->between(
-            start: now()->subYear(),
-            end: now(),
-        )
-        ->perMonth()
-        ->count();
 
-        return [
-        ];
+    public function getFilters(): ?array
+    {
+        // Get the current tenant
+        $tenant = Filament::getTenant();
+
+        // Filter Well model by tenant
+        $wellQuery = Well::where('company_id', $tenant->id);
+
+        $data = Trend::query($wellQuery)
+            ->between(
+                start: now()->subYear(),
+                end: now(),
+            )
+            ->perMonth()
+            ->count();
+
+        return [];
     }
 }

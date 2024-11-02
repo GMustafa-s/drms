@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\AreaResource\RelationManagers;
 
+use Filament\Facades\Filament;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
@@ -29,6 +30,8 @@ class SitesRelationManager extends RelationManager
 //                            ->required()
                             ->maxLength(255)
                             ->placeholder('comments here'),
+                        Forms\Components\Hidden::class::make('company_id')
+                            ->default(fn() => Filament::getTenant()->id ?? null), // assuming the user is associated with a company
                         Forms\Components\Toggle::make('is_published')
                             ->required()
                             ->label('Status')
