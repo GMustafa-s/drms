@@ -7,6 +7,10 @@ use App\Filament\Resources\AreaResource\RelationManagers;
 use App\Models\Area;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Infolists\Components\Grid;
+use Filament\Infolists\Components\Section;
+use Filament\Infolists\Components\TextEntry;
+use Filament\Infolists\Infolist;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Actions\Action;
@@ -82,17 +86,19 @@ class AreaResource extends Resource
                     Tables\Actions\DeleteAction::make(),
 
 
-                    Action::make('duplicate')
-                        ->label('Duplicate')
-                        ->icon('heroicon-o-document-duplicate') // Use an appropriate icon here
-                        ->action(function ($record) {
-                            // Duplicate the record
-                            $duplicate = $record->replicate(); // Clone the record
-                            $duplicate->save(); // Save the new cloned record
+//                    Action::make('duplicate')
+//                        ->label('Duplicate')
+//                        ->icon('heroicon-o-document-duplicate') // Use an appropriate icon here
+//                        ->action(function ($record) {
+//                            // Duplicate the record
+//                            $duplicate = $record->replicate(); // Clone the record
+//                            $duplicate->save(); // Save the new cloned record
+//
+//                            // Use Filament's resource URL helper for redirection
+//                            return redirect(AreaResource::getUrl('edit', ['record' => $duplicate->id]));
+//                        }),
+                    ]),
 
-                            // Use Filament's resource URL helper for redirection
-                            return redirect(AreaResource::getUrl('edit', ['record' => $duplicate->id]));
-                        }),]),
 
 
             ])
@@ -113,13 +119,32 @@ class AreaResource extends Resource
             RelationManagers\SitesRelationManager::class
         ];
     }
+    public static function infolist(Infolist $infolist): Infolist
+    {
+        return $infolist
+            ->schema([
+                Section::make('Details')->schema([
+                    Grid::make(2)->schema([
 
+
+                        TextEntry::make('name'),
+                        TextEntry::make('description')
+                            ->badge('true')
+                            ->color('info'),
+
+                        TextEntry::make('comments')
+                            ->columnSpanFull()
+
+                    ])
+                ]),
+            ]);
+    }
     public static function getPages(): array
     {
         return [
             'index' => Pages\ListAreas::route('/'),
-//            'view' => Pages\ViewArea::route('/{record}'),
             'create' => Pages\CreateArea::route('/create'),
+            'view' => Pages\ViewArea::route('/{record}'),
             'edit' => Pages\EditArea::route('/{record}/edit'),
         ];
     }

@@ -5,6 +5,7 @@ namespace App\Providers\Filament;
 use App\Filament\Pages\Tenancy\EditCompanyProfile;
 use App\Filament\Pages\Tenancy\RegisterCompany;
 use App\Models\Company;
+use CharrafiMed\GlobalSearchModal\GlobalSearchModalPlugin;
 use EightyNine\Reports\ReportsPlugin;
 use Exception;
 use Filament\Facades\Filament;
@@ -17,6 +18,8 @@ use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
 use Filament\Widgets;
+use Hasnayeen\Themes\Http\Middleware\SetTheme;
+use Hasnayeen\Themes\ThemesPlugin;
 use Howdu\FilamentRecordSwitcher\FilamentRecordSwitcherPlugin;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
@@ -39,8 +42,11 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('admin')
             ->path('/')
+            ->spa()
             ->login()
+            ->sidebarCollapsibleOnDesktop()
             ->default()
+
             ->colors([
                 'primary' => Color::Amber,
             ])
@@ -66,6 +72,8 @@ class AdminPanelProvider extends PanelProvider
                 DispatchServingFilamentEvent::class,
 
             ])
+
+
             ->plugins([
                 FilamentEditProfilePlugin::make()
                     ->setSort(8)
@@ -82,8 +90,11 @@ class AdminPanelProvider extends PanelProvider
                     ->setNavigationLabel('General Settings'),
                 FilamentRecordSwitcherPlugin::make(),
                 ReportsPlugin::make(),
+                ThemesPlugin::make()->canViewThemesPage(fn () => auth()->user()->hasRole('Super Admin')),
+                GlobalSearchModalPlugin::make()->associateItemsWithTheirGroups()
 
             ])
+
             ->tenant(Company::class, slugAttribute: 'slug', ownershipRelationship: 'company')
             ->tenantRegistration(RegisterCompany::class)
             ->tenantProfile(EditCompanyProfile::class)
@@ -100,6 +111,8 @@ class AdminPanelProvider extends PanelProvider
                     ->hidden(fn (): bool => ! auth()->user()->hasRole('Super Admin')),
                 // ...
             ])
+
+            ->viteTheme('resources/css/filament/admin/theme.css')
         ->authMiddleware([
                 Authenticate::class,
             ]);

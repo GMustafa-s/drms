@@ -9,4 +9,12 @@ use Filament\Resources\Pages\ViewRecord;
 class ViewArea extends ViewRecord
 {
     protected static string $resource = AreaResource::class;
+
+    protected function getHeaderActions(): array
+    {
+        return [
+            Actions\DeleteAction::make(),
+            Actions\EditAction::make(),
+        ];
+    }
 }

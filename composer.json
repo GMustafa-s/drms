@@ -7,10 +7,12 @@
     "require": {
         "php": "^8.2",
         "ext-bcmath": "*",
+        "charrafimed/global-search-modal": "^3.4",
         "eightynine/filament-reports": "^3.0",
         "filament/filament": "^3.2",
         "filament/widgets": "^3.2",
         "flowframe/laravel-trend": "^0.3.0",
+        "hasnayeen/themes": "^3.0",
         "howdu/filament-record-switcher": "^1.0",
         "joaopaulolndev/filament-edit-profile": "^1.0",
         "joaopaulolndev/filament-general-settings": "^1.0",

@@ -10,7 +10,7 @@ class WellUsage extends BaseWidget
 {
     protected static ?int $sort = 5;
     protected int | string | array $columnSpan = 'full';
-
+    protected static ?string $heading = 'Recently Added Well Usages';
     public function table(Table $table): Table
     {
         // Get the current tenant
@@ -106,10 +106,10 @@ class WellUsage extends BaseWidget
                     ->formatStateUsing(fn ($state) => number_format($state))
                     ->searchable(),
 
-                Tables\Columns\ToggleColumn::make('is_published')
-                    ->label('Published')
-                    ->toggleable()
-                    ->sortable(),
+//                Tables\Columns\ToggleColumn::make('is_published')
+//                    ->label('Published')
+//                    ->toggleable()
+//                    ->sortable(),
 
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Created At')
@@ -146,17 +146,17 @@ class WellUsage extends BaseWidget
                     ]),
             ])
             ->actions([
-                // Add an edit action button
-                Tables\Actions\EditAction::make()
-                    ->label('Edit'),
-
-                // Add a delete action button
-                Tables\Actions\DeleteAction::make()
-                    ->label('Delete'),
+//                // Add an edit action button
+//                Tables\Actions\EditAction::make()
+//                    ->label('Edit'),
+//
+//                // Add a delete action button
+//                Tables\Actions\DeleteAction::make()
+//                    ->label('Delete'),
             ])
             ->bulkActions([
                 // Add a bulk delete action
-//                Tables\Actions\BulkDeleteAction::make(),
+                Tables\Actions\DeleteBulkAction::make(),
             ]);
     }
 }

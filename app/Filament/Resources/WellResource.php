@@ -228,17 +228,17 @@ class WellResource extends Resource
                 //
             ])
             ->actions([
-                Action::make('duplicate')
-                    ->label('Duplicate')
-                    ->icon('heroicon-o-document-duplicate') // Use an appropriate icon here
-                    ->action(function ($record) {
-                        // Duplicate the record
-                        $duplicate = $record->replicate(); // Clone the record
-                        $duplicate->save(); // Save the new cloned record
-
-                        // Use Filament's resource URL helper for redirection
-                        return redirect(WellResource::getUrl('edit', ['record' => $duplicate->id]));
-                    }),
+//                Action::make('duplicate')
+//                    ->label('Duplicate')
+//                    ->icon('heroicon-o-document-duplicate') // Use an appropriate icon here
+//                    ->action(function ($record) {
+//                        // Duplicate the record
+//                        $duplicate = $record->replicate(); // Clone the record
+//                        $duplicate->save(); // Save the new cloned record
+//
+//                        // Use Filament's resource URL helper for redirection
+//                        return redirect(WellResource::getUrl('edit', ['record' => $duplicate->id]));
+//                    }),
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),
