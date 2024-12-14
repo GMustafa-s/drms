@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\AreaResource\Pages;
 use App\Filament\Resources\AreaResource\RelationManagers;
 use App\Models\Area;
+use Coolsam\FilamentFlatpickr\Forms\Components\Flatpickr;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Infolists\Components\Grid;
@@ -15,6 +16,8 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Actions\Action;
 use Filament\Tables\Actions\ActionGroup;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\Filter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
@@ -66,6 +69,29 @@ class AreaResource extends Resource
                     ->searchable()
                     ->sortable()
                     ->badge(true),
+                TextColumn::make('monthly_cost_by_site')
+                    ->formatStateUsing(function ($record) {
+                        // Assuming 'report_month' is the name of your filter
+                        $reportMonth = request()->input('tableFilters.month_selector.report_month'); // Provide a default value if needed
+                        return $record->monthlyCost($record->id, $reportMonth);
+                    })
+                    ->default('555'),
+                TextColumn::make('BWE by site')
+                    ->label('BWE by site')
+                    ->formatStateUsing(function ($record) {
+                        // Assuming 'report_month' is the name of your filter
+                        $reportMonth = request()->input('tableFilters.month_selector.report_month'); // Provide a default value if needed
+                        return $record->BWE($record->id, $reportMonth);
+                    })
+                    ->default('555'),
+                TextColumn::make('BWPD by site')
+                    ->label('BWPD by Site')
+                    ->formatStateUsing(function ($record) {
+                        // Assuming 'report_month' is the name of your filter
+                        $reportMonth = request()->input('tableFilters.month_selector.report_month'); // Provide a default value if needed
+                        return $record->bwpd($record->id, $reportMonth);
+                    })
+                    ->default('555'),
                 Tables\Columns\IconColumn::make('is_published')
                     ->boolean(),
                 Tables\Columns\TextColumn::make('created_at')
@@ -78,8 +104,26 @@ class AreaResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                //
+                Filter::make('is_published')
+                    ->toggle()
+                    ->label('Status')
+                    ->query(fn(Builder $query): Builder => $query->where('is_published', true)),
+                Filter::make('month_selector')
+                    ->default(now())
+                    ->form(
+                        [
+                            Flatpickr::make('report_month')->label('Filter Each Site Data by Month')->monthSelect()->animate()
+                        ]
+                    ),
+
+
             ])
+            ->filtersTriggerAction(
+                fn(Action $action) => $action
+                    ->button()
+                    ->label('Filter'),
+            )
+            ->selectable()
             ->actions([
                 Tables\Actions\ViewAction::make(),
                 ActionGroup::make([Tables\Actions\EditAction::make(),

@@ -74,7 +74,7 @@ class UsersReport extends Report
                                 TextColumn::make('quarts_per_day')->label('Quarts/Day'),
                                 TextColumn::make('gallons_per_day')->label('Gallons/Day'),
                                 TextColumn::make('gallons_per_month')->label('Gallons/Month'),
-                                TextColumn::make('location')->label('Location'),
+                                // TextColumn::make('location')->label('Location'),
                                 TextColumn::make('program')->label('Program'),
                                 TextColumn::make('monthly_cost')->label('Monthly Cost')->numeric(),
                                 TextColumn::make('created_at')->label('Date Created')->date(),

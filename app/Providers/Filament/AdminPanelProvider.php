@@ -4,6 +4,7 @@ namespace App\Providers\Filament;
 
 use App\Filament\Pages\Tenancy\EditCompanyProfile;
 use App\Filament\Pages\Tenancy\RegisterCompany;
+use App\Filament\Widgets\MonthSelector;
 use App\Models\Company;
 use CharrafiMed\GlobalSearchModal\GlobalSearchModalPlugin;
 use EightyNine\Reports\ReportsPlugin;
@@ -45,21 +46,15 @@ class AdminPanelProvider extends PanelProvider
             ->spa()
             ->login()
             ->sidebarCollapsibleOnDesktop()
-            ->default()
-
             ->colors([
                 'primary' => Color::Amber,
             ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
-            ->pages([
-                Pages\Dashboard::class,
-            ])
+            ->pages([])
+
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
-            ->widgets([
-                Widgets\AccountWidget::class,
-//                Widgets\FilamentInfoWidget::class,
-            ])
+
             ->middleware([
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,
@@ -72,8 +67,6 @@ class AdminPanelProvider extends PanelProvider
                 DispatchServingFilamentEvent::class,
 
             ])
-
-
             ->plugins([
                 FilamentEditProfilePlugin::make()
                     ->setSort(8)
@@ -90,7 +83,7 @@ class AdminPanelProvider extends PanelProvider
                     ->setNavigationLabel('General Settings'),
                 FilamentRecordSwitcherPlugin::make(),
                 ReportsPlugin::make(),
-                ThemesPlugin::make()->canViewThemesPage(fn () => auth()->user()->hasRole('Super Admin')),
+                ThemesPlugin::make()->canViewThemesPage(fn() => auth()->user()->hasRole('Super Admin')),
                 GlobalSearchModalPlugin::make()->associateItemsWithTheirGroups()
 
             ])
@@ -101,23 +94,20 @@ class AdminPanelProvider extends PanelProvider
             // Add other panel configurations here
             ->tenantMenuItems([
                 'profile' => MenuItem::make()
-                    ->visible(fn (): bool => auth()->user()->hasRole('Super Admin'))
+//                    ->visible(fn(): bool => auth()->user()->hasRole('Super Admin'))
                     // or using hidden method
-                    ->hidden(fn (): bool => ! auth()->user()->hasRole('Super Admin')),
+                    ->hidden(fn(): bool => ! auth()->user()->hasRole('Super Admin')),
 
                 'register' => MenuItem::make()
-                    ->visible(fn (): bool => auth()->user()->hasRole('Super Admin'))
+//                    ->visible(fn(): bool => auth()->user()->hasRole('Super Admin'))
                     // or using hidden method
-                    ->hidden(fn (): bool => ! auth()->user()->hasRole('Super Admin')),
+                    ->hidden(fn(): bool => ! auth()->user()->hasRole('Super Admin')),
                 // ...
             ])
 
             ->viteTheme('resources/css/filament/admin/theme.css')
-        ->authMiddleware([
+            ->authMiddleware([
                 Authenticate::class,
             ]);
-
-
     }
-
 }

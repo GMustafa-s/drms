@@ -27,24 +27,39 @@ class WellUsageRelationManager extends RelationManager
                     Section::make('Enter Usage Details')->schema([
 
 
+                        Forms\Components\Select::make('well_id')
+                            ->required()
+                            ->searchable()
+                            ->preload()
+                            ->relationship('well', 'lease', fn($query) => $query->where('company_id', Filament::getTenant()->id))
+                            ->getSearchResultsUsing(fn($query) => Well::where('company_id', Filament::getTenant()->id)
+                                ->where('name', 'like', "%{$query}%")
+                                ->pluck('name', 'id')
+                                ->toArray())
+                            ->getOptionLabelUsing(fn($value) => Well::where('company_id', Filament::getTenant()->id)
+                                ->find($value)?->name)
+                            ->reactive()
+                            ->afterStateUpdated(fn(callable $get, callable $set) => static::populatePpmFromWell($get, $set))
+                            ->searchable(),
 
+                        Forms\Components\DatePicker::make('created_at')->native(false),
                         Section::make('Production (Daily Average)')
                             ->schema([
                                 Grid::make(3)
                                     ->schema([
-                                        Forms\Components\TextInput::make('production_location')
-                                            ->required()
-                                            ->label('Production Location'),
+                                        // Forms\Components\TextInput::make('production_location')
+                                        //     ->required()
+                                        //     ->label('Production Location'),
                                         Forms\Components\TextInput::make('bopd')
-                                            ->numeric()->reactive()->afterStateUpdated(fn (callable $get, callable $set) => static::populatePpmFromWell($get, $set))
+                                            ->numeric()->reactive()->afterStateUpdated(fn(callable $get, callable $set) => static::populatePpmFromWell($get, $set))
                                             ->required()
                                             ->label('BOPD'),
                                         Forms\Components\TextInput::make('mmcf')
-                                            ->numeric()->reactive()->afterStateUpdated(fn (callable $get, callable $set) => static::populatePpmFromWell($get, $set))
+                                            ->numeric()->reactive()->afterStateUpdated(fn(callable $get, callable $set) => static::populatePpmFromWell($get, $set))
                                             ->required()
                                             ->label('MMCF'),
                                         Forms\Components\TextInput::make('bwpd')
-                                            ->numeric()->reactive()->afterStateUpdated(fn (callable $get, callable $set) => static::populatePpmFromWell($get, $set))
+                                            ->numeric()->reactive()->afterStateUpdated(fn(callable $get, callable $set) => static::populatePpmFromWell($get, $set))
                                             ->required()
                                             ->label('BWPD'),
                                     ]),
@@ -53,47 +68,67 @@ class WellUsageRelationManager extends RelationManager
                 ])->columnSpanFull(),
                 Forms\Components\Group::make()
                     ->schema([
-                        Section::make('Chemical Injection Points
-')->schema([
-
-                            Section::make('Details')
-                                ->schema([
-                                    Grid::make(2)
-                                        ->schema([
-                                            Forms\Components\TextInput::make('product_type')
-                                                ->required()
-                                                ->label('Product Type'),
-                                            Forms\Components\TextInput::make('product_name')
-                                                ->required()
-                                                ->label('Product Name'),
-                                            Forms\Components\TextInput::make('injection_location')
-                                                ->required()
-                                                ->label('Injection Location'),
-                                        ]),
-                                ]),
-                            Section::make('Data (Continuous Applications)')
-                                ->schema([
-                                    Grid::make(2)
-                                        ->schema([
-                                            Forms\Components\TextInput::make('ppm')
-                                                ->numeric()->reactive()->afterStateUpdated(fn (callable $get, callable $set) => static::populatePpmFromWell($get, $set))
-                                                ->required()
-                                                ->label('Parts Per Million (PPM)'),
-                                            Forms\Components\TextInput::make('quarts_per_day')
-                                                ->numeric()->reactive()->afterStateUpdated(fn (callable $get, callable $set) => static::populatePpmFromWell($get, $set))
-                                                ->required()
-                                                ->label('Quarts Per Day'),
-                                            Forms\Components\TextInput::make('gallons_per_day')
-                                                ->numeric()->reactive()->afterStateUpdated(fn (callable $get, callable $set) => static::populatePpmFromWell($get, $set))
-                                                ->required()
-                                                ->label('Gallons Per Day'),
-                                            Forms\Components\TextInput::make('gallons_per_month')
-                                                ->numeric()->reactive()->afterStateUpdated(fn (callable $get, callable $set) => static::populatePpmFromWell($get, $set))
-                                                ->required()
-                                                ->label('Gallons Per Month'),
-                                        ]),
-                                ]),
-                        ]),
+                        Section::make('Chemical Injection Points')
+                            ->schema([
+                                Section::make('Details')
+                                    ->schema([
+                                        Grid::make(2)
+                                            ->schema([
+                                                Forms\Components\TextInput::make('product_type')
+                                                    ->required()
+                                                    ->label('Product Type'),
+                                                Forms\Components\Select::make('product_name')
+                                                    ->searchable()
+                                                    ->preload()
+                                                    ->label('Product')
+                                                    ->options(Product::all()->pluck('name', 'name'))
+                                                    ->reactive()
+                                                    ->afterStateUpdated(function (callable $set, $state) {
+                                                        if ($state) {
+                                                            $product = Product::find($state);
+                                                            $set('product_type', $product->productType->type ?? null);
+                                                        }
+                                                    })
+                                                    ->required(),
+                                                Forms\Components\Select::make('injection_location')
+                                                    ->required()
+                                                    ->searchable()
+                                                    ->preload()
+                                                    ->options(InjectionLocation::all()->pluck('name', 'name'))
+                                                    ->label('Injection Location'),
+                                            ]),
+                                    ]),
+                                Section::make('Data (Continuous Applications)')
+                                    ->schema([
+                                        Grid::make(2)
+                                            ->schema([
+                                                Forms\Components\TextInput::make('ppm')
+                                                    ->numeric()->reactive()->afterStateUpdated(fn(callable $get, callable $set) => static::populatePpmFromWell($get, $set))
+                                                    ->required()
+                                                    ->disabled()
+                                                    ->dehydrated()
+                                                    ->label('Parts Per Million (PPM)'),
+                                                Forms\Components\TextInput::make('quarts_per_day')
+                                                    ->numeric()->reactive()->afterStateUpdated(fn(callable $get, callable $set) => static::populatePpmFromWell($get, $set))
+                                                    ->required()
+                                                    ->disabled()
+                                                    ->dehydrated()
+                                                    ->label('Quarts Per Day'),
+                                                Forms\Components\TextInput::make('gallons_per_day')
+                                                    ->numeric()->reactive()->afterStateUpdated(fn(callable $get, callable $set) => static::populatePpmFromWell($get, $set))
+                                                    ->required()
+                                                    ->disabled()
+                                                    ->dehydrated()
+                                                    ->label('Gallons Per Day'),
+                                                Forms\Components\TextInput::make('gallons_per_month')
+                                                    ->numeric()->reactive()->afterStateUpdated(fn(callable $get, callable $set) => static::populatePpmFromWell($get, $set))
+                                                    ->required()
+                                                    ->disabled()
+                                                    ->dehydrated()
+                                                    ->label('Gallons Per Month'),
+                                            ]),
+                                    ]),
+                            ]),
 
                     ]),
                 Forms\Components\Group::make()->schema([
@@ -102,14 +137,14 @@ class WellUsageRelationManager extends RelationManager
                             ->schema([
                                 Grid::make(2)
                                     ->schema([
-                                        Forms\Components\TextInput::make('usage_location')
-                                            ->required()
-                                            ->label('Usage Location'),
-                                        Forms\Components\TextInput::make('program')
-                                            ->required()
-                                            ->label('Program'),
+                                        // Forms\Components\TextInput::make('usage_location')
+                                        //     ->required()
+                                        //     ->label('Usage Location'),
+                                        // Forms\Components\TextInput::make('program')
+                                        //     ->required()
+                                        //     ->label('Program'),
                                         Forms\Components\TextInput::make('deliveries_gallons')
-                                            ->numeric()->reactive()->afterStateUpdated(fn (callable $get, callable $set) => static::populatePpmFromWell($get, $set))
+                                            ->numeric()->reactive()->afterStateUpdated(fn(callable $get, callable $set) => static::populatePpmFromWell($get, $set))
                                             ->required()
                                             ->label('Deliveries (Gallons)'),
                                     ]),
@@ -119,23 +154,27 @@ class WellUsageRelationManager extends RelationManager
                                 Grid::make(2)
                                     ->schema([
                                         Forms\Components\TextInput::make('ppg')
-                                            ->numeric()->reactive()->afterStateUpdated(fn (callable $get, callable $set) => static::populatePpmFromWell($get, $set))
+                                            ->numeric()->reactive()->afterStateUpdated(fn(callable $get, callable $set) => static::populatePpmFromWell($get, $set))
                                             ->required()
                                             ->label('Price Per Gallon'),
                                         Forms\Components\TextInput::make('monthly_cost')
-                                            ->numeric()->reactive()->afterStateUpdated(fn (callable $get, callable $set) => static::populatePpmFromWell($get, $set))
+                                            ->numeric()->reactive()->afterStateUpdated(fn(callable $get, callable $set) => static::populatePpmFromWell($get, $set))
                                             ->required()
+                                            ->disabled()
+                                            ->dehydrated()
                                             ->label('Monthly Cost'),
                                         Forms\Components\TextInput::make('bwe')
-                                            ->numeric()->reactive()->afterStateUpdated(fn (callable $get, callable $set) => static::populatePpmFromWell($get, $set))
+                                            ->numeric()->reactive()->afterStateUpdated(fn(callable $get, callable $set) => static::populatePpmFromWell($get, $set))
                                             ->required()
+                                            ->disabled()
+                                            ->dehydrated()
                                             ->label('BWE'),
                                         Forms\Components\TextInput::make('bowg')
-                                            ->numeric()->reactive()->afterStateUpdated(fn (callable $get, callable $set) => static::populatePpmFromWell($get, $set))
+                                            ->numeric()->reactive()->afterStateUpdated(fn(callable $get, callable $set) => static::populatePpmFromWell($get, $set))
                                             ->required()
+                                            ->disabled()
+                                            ->dehydrated()
                                             ->label('BOWG'),
-                                        Forms\Components\Hidden::class::make('company_id')
-                                            ->default(fn() => Filament::getTenant()->id ?? null),
                                     ]),
                             ]),
                     ])
@@ -152,6 +191,7 @@ class WellUsageRelationManager extends RelationManager
                     ->label('Month')
                     ->dateTime(' M, y ')
                     ->sortable(),
+                Tables\Columns\TextColumn::make('monthly_cost') ->searchable(),
                 Tables\Columns\TextColumn::make('product_name')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('product_type')
@@ -160,28 +200,26 @@ class WellUsageRelationManager extends RelationManager
                     ->searchable(),
                 Tables\Columns\TextColumn::make('ppm')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('quarts_per_day')
-                    ->searchable(),
+//                Tables\Columns\TextColumn::make('quarts_per_day')
+//                    ->searchable(),
                 Tables\Columns\TextColumn::make('gallons_per_day')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('gallons_per_month')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('location')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('program')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('delivery_per_gallon')
+                // Tables\Columns\TextColumn::make('location')
+                //     ->searchable(),
+                // Tables\Columns\TextColumn::make('program')
+                //     ->searchable(),
+                Tables\Columns\TextColumn::make('deliveries_gallons')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('ppg')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('monthly_cost')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('bwe')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('bowg')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('production_location')
-                    ->searchable(),
+                // Tables\Columns\TextColumn::make('production_location')
+                //     ->searchable(),
                 Tables\Columns\TextColumn::make('bopd')
                     ->searchable(),
                 Tables\Columns\IconColumn::make('is_published')
@@ -190,7 +228,7 @@ class WellUsageRelationManager extends RelationManager
                 Tables\Columns\TextColumn::make('updated_at')
                     ->dateTime()
                     ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                // ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 //
@@ -258,7 +296,7 @@ class WellUsageRelationManager extends RelationManager
             $set('monthly_cost', 0);
         }
 
-// BWE Calculation: monthly_cost / (BWPD * 30.3)
+        // BWE Calculation: monthly_cost / (BWPD * 30.3)
         $monthlyCost = $get('monthly_cost');
         $bwpd = $get('bwpd');
 
@@ -343,7 +381,4 @@ class WellUsageRelationManager extends RelationManager
         // Recalculate other fields if necessary
         $this->calculateAllFields($get, $set);
     }
-
-
-
 }

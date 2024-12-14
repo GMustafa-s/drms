@@ -23,8 +23,8 @@ return new class extends Migration {
             $table->decimal('gallons_per_month', 10, 2); // Usage in gallons per month
 
             // Usage For Month Section
-            $table->string('usage_location'); // Location of chemical usage
-            $table->string('program'); // Program under which usage is categorized
+            // $table->string('usage_location'); // Location of chemical usage
+            // $table->string('program'); // Program under which usage is categorized
             $table->integer('deliveries_gallons'); // Number of deliveries in gallons
 
             // Cost Based On Usage And Deliveries Section
@@ -34,36 +34,12 @@ return new class extends Migration {
             $table->decimal('bowg', 5, 2); // BOWG value in dollars
 
             // Production (Daily Average) Section
-            $table->string('production_location'); // Production location (e.g., Silverton 1H)
+            // $table->string('production_location'); // Production location (e.g., Silverton 1H)
             $table->integer('bopd'); // Barrels of Oil Per Day (BOPD)
             $table->decimal('mmcf', 10, 3); // Million Cubic Feet (MMCF)
             $table->integer('bwpd'); // Barrels of Water Per Day (BWPD)
 
             $table->timestamps();
-
-
-
-//
-//            $table->id();
-//            $table->foreignId('well_id')->constrained('wells')->cascadeOnDelete()->cascadeOnUpdate();
-//            $table->string('product_name');
-//            $table->string('product_type');
-//            $table->string('injection_location');
-//            $table->string('ppm');
-//            $table->string('quarts_per_day');
-//            $table->string('gallons_per_day');
-//            $table->string('gallons_per_month');
-//            $table->string('location');
-//            $table->string('program');
-//            $table->string('delivery_per_gallon');
-//            $table->string('ppg');
-//            $table->string('monthly_cost');
-//            $table->string('bwe');
-//            $table->string('bowg');
-//            $table->string('production_location');
-//            $table->string('bopd');
-//            $table->Boolean('is_published')->default(false);
-//            $table->timestamps();
         });
     }
 

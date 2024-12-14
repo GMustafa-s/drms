@@ -9,6 +9,14 @@ use Filament\Resources\Pages\ViewRecord;
 class ViewSite extends ViewRecord
 {
     protected static string $resource = SiteResource::class;
+
+    protected function getHeaderWidgets(): array
+    {
+        return [
+            \App\Livewire\BlogPostsChart::class
+//            WellUsage::class// Add your chart widget here
+        ];
+    }
     protected function getHeaderActions(): array
     {
         return [
@@ -16,4 +24,5 @@ class ViewSite extends ViewRecord
             Actions\EditAction::make(),
         ];
     }
+
 }

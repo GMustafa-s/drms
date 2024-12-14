@@ -11,6 +11,7 @@ use Flowframe\Trend\TrendValue;
 class Chart2 extends ChartWidget
 {
     protected static ?string $heading = 'Wells / Usages Chart';
+    protected static ?int $sort =3;
 
     public function getData(): array
     {

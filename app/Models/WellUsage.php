@@ -19,14 +19,14 @@ class WellUsage extends Model
         'quarts_per_day', // Usage in quarts per day
         'gallons_per_day', // Usage in gallons per day
         'gallons_per_month', // Usage in gallons per month
-        'usage_location', // Location of chemical usage
-        'program', // Program under which usage is categorized
+        // 'usage_location', // Location of chemical usage
+        // 'program', // Program under which usage is categorized
         'deliveries_gallons', // Number of deliveries in gallons
         'ppg', // Price per gallon
         'monthly_cost', // Monthly cost based on usage
         'bwe', // BWE value in dollars
         'bowg', // BOWG value in dollars
-        'production_location', // Production location (e.g., Silverton 1H)
+        // 'production_location', // Production location (e.g., Silverton 1H)
         'bopd', // Barrels of Oil Per Day (BOPD)
         'mmcf', // Million Cubic Feet (MMCF)
         'bwpd', // Barrels of Water Per Day (BWPD)
@@ -34,33 +34,13 @@ class WellUsage extends Model
         'created_at'
     ];
 
-//    protected $fillable =[
-//        'well_id',
-//        'product_name',
-//        'product_type',
-//        'injection_location',
-//        'ppm',
-//        'quarts_per_day',
-//        'gallons_per_day',
-//        'gallons_per_month',
-//        'location',
-//        'program',
-//        'delivery_per_gallon',
-//        'ppg',
-//        'monthly_cost',
-//        'bwe',
-//        'bowg',
-//        'production_location',
-//        'bopd',
-//        'is_published'
-//    ];
+
     public function Well(): belongsTo
     {
-         return $this->belongsTo(Well::class);
+        return $this->belongsTo(Well::class);
     }
     public function company(): BelongsTo
     {
         return $this->belongsTo(Company::class);
     }
-
 }

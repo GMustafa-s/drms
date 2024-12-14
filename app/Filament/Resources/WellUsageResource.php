@@ -3,9 +3,14 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\WellUsageResource\Pages;
+use App\Models\InjectionLocation;
+use App\Models\Site;
 use App\Models\Well;
+use App\Models\Product;
 use App\Models\WellUsage;
-use Closure;
+use Carbon\Carbon;
+
+use Coolsam\FilamentFlatpickr\Forms\Components\Flatpickr;
 use Filament\Facades\Filament;
 use Filament\Forms;
 use Filament\Forms\Components\Grid;
@@ -17,11 +22,17 @@ use Filament\Infolists\Components\Tabs\Tab;
 use Filament\Infolists\Infolist;
 use Filament\Resources\Resource;
 use Filament\Tables;
-use Filament\Tables\Actions\Action;
 use Filament\Tables\Columns\BadgeColumn;
+use Filament\Tables\Columns\Summarizers\Average;
+use Filament\Tables\Columns\Summarizers\Range;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Enums\FiltersLayout;
+use Filament\Tables\Filters\Filter;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 
+use Illuminate\Contracts\Database\Eloquent\Builder;
+use PhpOffice\PhpSpreadsheet\Calculation\MathTrig\Sum;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportAction;
 
 class WellUsageResource extends Resource
@@ -58,9 +69,9 @@ class WellUsageResource extends Resource
                             ->schema([
                                 Grid::make(3)
                                     ->schema([
-                                        Forms\Components\TextInput::make('production_location')
-                                            ->required()
-                                            ->label('Production Location'),
+                                        // Forms\Components\TextInput::make('production_location')
+                                        //     ->required()
+                                        //     ->label('Production Location'),
                                         Forms\Components\TextInput::make('bopd')
                                             ->numeric()->reactive()->afterStateUpdated(fn(callable $get, callable $set) => static::populatePpmFromWell($get, $set))
                                             ->required()
@@ -79,9 +90,8 @@ class WellUsageResource extends Resource
                 ])->columnSpanFull(),
                 Forms\Components\Group::make()
                     ->schema([
-                        Section::make('Chemical Injection Points
-')->schema([
-
+                        Section::make('Chemical Injection Points')
+                        ->schema([
                             Section::make('Details')
                                 ->schema([
                                     Grid::make(2)
@@ -89,11 +99,24 @@ class WellUsageResource extends Resource
                                             Forms\Components\TextInput::make('product_type')
                                                 ->required()
                                                 ->label('Product Type'),
-                                            Forms\Components\TextInput::make('product_name')
+                                            Forms\Components\Select::make('product_name')
+                                                ->searchable()
+                                                ->preload()
+                                                ->label('Product')
+                                                ->options(Product::all()->pluck('name', 'id'))
+                                                ->reactive()
+                                                ->afterStateUpdated(function (callable $set, $state) {
+                                                    if ($state) {
+                                                        $product = Product::find($state);
+                                                        $set('product_type', $product->productType->type ?? null);
+                                                    }
+                                                })
+                                                ->required(),
+                                            Forms\Components\Select::make('injection_location')
                                                 ->required()
-                                                ->label('Product Name'),
-                                            Forms\Components\TextInput::make('injection_location')
-                                                ->required()
+                                                ->searchable()
+                                                ->preload()
+                                                ->options(InjectionLocation::all()->pluck('name', 'name'))
                                                 ->label('Injection Location'),
                                         ]),
                                 ]),
@@ -136,12 +159,12 @@ class WellUsageResource extends Resource
                             ->schema([
                                 Grid::make(2)
                                     ->schema([
-                                        Forms\Components\TextInput::make('usage_location')
-                                            ->required()
-                                            ->label('Usage Location'),
-                                        Forms\Components\TextInput::make('program')
-                                            ->required()
-                                            ->label('Program'),
+                                        // Forms\Components\TextInput::make('usage_location')
+                                        //     ->required()
+                                        //     ->label('Usage Location'),
+                                        // Forms\Components\TextInput::make('program')
+                                        //     ->required()
+                                        //     ->label('Program'),
                                         Forms\Components\TextInput::make('deliveries_gallons')
                                             ->numeric()->reactive()->afterStateUpdated(fn(callable $get, callable $set) => static::populatePpmFromWell($get, $set))
                                             ->required()
@@ -180,126 +203,127 @@ class WellUsageResource extends Resource
                 ]),
             ]);
 
-//        return $form
-//            ->schema([
-//
-//
-//                Forms\Components\Group::make()->schema([
-//                    Section::make('Data')->schema([
-//                        Grid::make(3)->schema([
-//
-//                            TextInput::make('ppm')
-//                                ->label('PPM')
-//                                ->numeric()
-//                                ->reactive() // React to changes in PPM
-//                                ->afterStateUpdated(fn (callable $get, callable $set) => static::calculateAllFields($get, $set)),
-//                            Forms\Components\TextInput::make('quarts_per_day')
-//                                ->label('Quarts per Day')
-//                                ->reactive()
-//                                ->afterStateUpdated(fn (callable $get, callable $set) => static::calculateAllFields($get, $set))
-//                                ->required()
-//                                ->numeric()
-//                                ->required(),
-//                            Forms\Components\TextInput::make('gallons_per_day')
-//                                ->label('Gallons per Day')
-//                                ->numeric()
-//                                ->reactive()
-//                                ->afterStateUpdated(fn (callable $get, callable $set) => static::calculateAllFields($get, $set))
-//                                ->required()
-//                                ->required(),
-//                            Forms\Components\TextInput::make('gallons_per_month')
-//                                ->label('Gallons per Month')
-//                                ->reactive()
-//                                ->afterStateUpdated(fn (callable $get, callable $set) => static::calculateAllFields($get, $set))
-//                                ->required()
-//                                ->required()
-//                                ->numeric(),
-//                            Forms\Components\TextInput::make('program')
-//                                ->label('Program')
-//                                ->required()
-//                                ->maxLength(255),
-//                            Forms\Components\TextInput::make('delivery_per_gallon')
-//                                ->label('Delivery per Gallon')
-//                                ->required()
-//                                ->numeric()
-//                                ->reactive()
-//                                ->afterStateUpdated(fn (callable $get, callable $set) => static::calculateAllFields($get, $set))
-//                                ->required(),
-//                            Forms\Components\TextInput::make('ppg')
-//                                ->label('PPG')
-//                                ->numeric()
-//                                ->reactive()
-//                                ->afterStateUpdated(fn (callable $get, callable $set) => static::calculateAllFields($get, $set))
-//                                ->required(),
-//                            Forms\Components\TextInput::make('monthly_cost')
-//                                ->label('Monthly cost')
-//                                ->numeric()
-//                                ->required()->reactive()
-//                                ->afterStateUpdated(fn (callable $get, callable $set) => static::calculateAllFields($get, $set))
-//                                ->required(),
-//                            Forms\Components\TextInput::make('bwe')
-//                                ->label('BWE')
-//                                ->numeric()
-//                                ->reactive()
-//                                ->afterStateUpdated(fn (callable $get, callable $set) => static::calculateAllFields($get, $set))
-//                                ->required(),
-//                            Forms\Components\TextInput::make('bwpd')
-//                                ->label('bwpd')
-//                                ->numeric()
-//                                ->reactive() // React to changes in bwpd
-//                                ->afterStateUpdated(fn (callable $get, callable $set) => static::calculateAllFields($get, $set))
-//                                ->required(),
-//                            Forms\Components\TextInput::make('bopd')
-//                                ->label('Bopd')
-//                                ->numeric()
-//                                ->required()->reactive()
-//                                ->afterStateUpdated(fn (callable $get, callable $set) => static::calculateAllFields($get, $set))
-//                                ->required(),
-//                        ])
-//
-//                    ])
-//                ]),
-//                Forms\Components\Group::make()->schema([
-//                    Section::make('Details')->schema([
-//                        Grid::make(2)->schema([
-//
-//                            Forms\Components\Select::make('well_id')
-//                                ->preload()
-//                                ->relationship('well', 'lease')
-//                                ->reactive()
-//                                ->afterStateUpdated(fn (callable $get, callable $set) => static::populatePpmFromWell($get, $set))
-//                            ->searchable(),
-//                            Forms\Components\TextInput::make('product_name')
-//                                ->datalist([
-//                                    'BWM',
-//                                    'Ford',
-//                                    'Mercedes-Benz',
-//                                    'Porsche',
-//                                    'Toyota',
-//                                    'Tesla',
-//                                    'Volkswagen',
-//                                ])
-//                                ->required()
-//                                ->maxLength(255),
-//                            Forms\Components\TextInput::make('product_type')
-//                                ->required()
-//                                ->maxLength(255),
-//                            Forms\Components\TextInput::make('injection_location')
-//                                ->required()
-//                                ->maxLength(255),
-//
-//                            Forms\Components\Toggle::make('is_published')
-//                                ->required(),
-//                        ])
-//
-//                    ])
-//                ]),
-//            ]);333
+        //        return $form
+        //            ->schema([
+        //
+        //
+        //                Forms\Components\Group::make()->schema([
+        //                    Section::make('Data')->schema([
+        //                        Grid::make(3)->schema([
+        //
+        //                            TextInput::make('ppm')
+        //                                ->label('PPM')
+        //                                ->numeric()
+        //                                ->reactive() // React to changes in PPM
+        //                                ->afterStateUpdated(fn (callable $get, callable $set) => static::calculateAllFields($get, $set)),
+        //                            Forms\Components\TextInput::make('quarts_per_day')
+        //                                ->label('Quarts per Day')
+        //                                ->reactive()
+        //                                ->afterStateUpdated(fn (callable $get, callable $set) => static::calculateAllFields($get, $set))
+        //                                ->required()
+        //                                ->numeric()
+        //                                ->required(),
+        //                            Forms\Components\TextInput::make('gallons_per_day')
+        //                                ->label('Gallons per Day')
+        //                                ->numeric()
+        //                                ->reactive()
+        //                                ->afterStateUpdated(fn (callable $get, callable $set) => static::calculateAllFields($get, $set))
+        //                                ->required()
+        //                                ->required(),
+        //                            Forms\Components\TextInput::make('gallons_per_month')
+        //                                ->label('Gallons per Month')
+        //                                ->reactive()
+        //                                ->afterStateUpdated(fn (callable $get, callable $set) => static::calculateAllFields($get, $set))
+        //                                ->required()
+        //                                ->required()
+        //                                ->numeric(),
+        //                            Forms\Components\TextInput::make('program')
+        //                                ->label('Program')
+        //                                ->required()
+        //                                ->maxLength(255),
+        //                            Forms\Components\TextInput::make('delivery_per_gallon')
+        //                                ->label('Delivery per Gallon')
+        //                                ->required()
+        //                                ->numeric()
+        //                                ->reactive()
+        //                                ->afterStateUpdated(fn (callable $get, callable $set) => static::calculateAllFields($get, $set))
+        //                                ->required(),
+        //                            Forms\Components\TextInput::make('ppg')
+        //                                ->label('PPG')
+        //                                ->numeric()
+        //                                ->reactive()
+        //                                ->afterStateUpdated(fn (callable $get, callable $set) => static::calculateAllFields($get, $set))
+        //                                ->required(),
+        //                            Forms\Components\TextInput::make('monthly_cost')
+        //                                ->label('Monthly cost')
+        //                                ->numeric()
+        //                                ->required()->reactive()
+        //                                ->afterStateUpdated(fn (callable $get, callable $set) => static::calculateAllFields($get, $set))
+        //                                ->required(),
+        //                            Forms\Components\TextInput::make('bwe')
+        //                                ->label('BWE')
+        //                                ->numeric()
+        //                                ->reactive()
+        //                                ->afterStateUpdated(fn (callable $get, callable $set) => static::calculateAllFields($get, $set))
+        //                                ->required(),
+        //                            Forms\Components\TextInput::make('bwpd')
+        //                                ->label('bwpd')
+        //                                ->numeric()
+        //                                ->reactive() // React to changes in bwpd
+        //                                ->afterStateUpdated(fn (callable $get, callable $set) => static::calculateAllFields($get, $set))
+        //                                ->required(),
+        //                            Forms\Components\TextInput::make('bopd')
+        //                                ->label('Bopd')
+        //                                ->numeric()
+        //                                ->required()->reactive()
+        //                                ->afterStateUpdated(fn (callable $get, callable $set) => static::calculateAllFields($get, $set))
+        //                                ->required(),
+        //                        ])
+        //
+        //                    ])
+        //                ]),
+        //                Forms\Components\Group::make()->schema([
+        //                    Section::make('Details')->schema([
+        //                        Grid::make(2)->schema([
+        //
+        //                            Forms\Components\Select::make('well_id')
+        //                                ->preload()
+        //                                ->relationship('well', 'lease')
+        //                                ->reactive()
+        //                                ->afterStateUpdated(fn (callable $get, callable $set) => static::populatePpmFromWell($get, $set))
+        //                            ->searchable(),
+        //                            Forms\Components\TextInput::make('product_name')
+        //                                ->datalist([
+        //                                    'BWM',
+        //                                    'Ford',
+        //                                    'Mercedes-Benz',
+        //                                    'Porsche',
+        //                                    'Toyota',
+        //                                    'Tesla',
+        //                                    'Volkswagen',
+        //                                ])
+        //                                ->required()
+        //                                ->maxLength(255),
+        //                            Forms\Components\TextInput::make('product_type')
+        //                                ->required()
+        //                                ->maxLength(255),
+        //                            Forms\Components\TextInput::make('injection_location')
+        //                                ->required()
+        //                                ->maxLength(255),
+        //
+        //                            Forms\Components\Toggle::make('is_published')
+        //                                ->required(),
+        //                        ])
+        //
+        //                    ])
+        //                ]),
+        //            ]);333
     }
 
     public static function table(Table $table): Table
     {
         return $table
+
             ->headerActions([
                 ExportAction::make()   // ...
             ])
@@ -308,27 +332,53 @@ class WellUsageResource extends Resource
                     ->label('Lease (Well)')
                     ->sortable()
                     ->searchable(),
+
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Month')
                     ->dateTime(' M, y ')
                     ->sortable(),
 
-                TextColumn::make('production_location')
-                    ->label('Production Location')
-                    ->sortable()
-                    ->searchable(),
+                BadgeColumn::make('monthly_cost')
+                    ->label('Monthly Cost')
+                    ->summarize([
+                         Tables\Columns\Summarizers\Sum::make()->label("Total (sum)") ,
+                        Range::make()->label("Range"),
+                        Average::make()->label("average"),
+                    ])
+                    ->color('primary')
+                    ->sortable(),
+
+                // TextColumn::make('production_location')
+                //     ->label('Production Location')
+                //     ->sortable()
+                //     ->searchable(),
 
                 BadgeColumn::make('bopd')
+                    ->summarize([
+                         Tables\Columns\Summarizers\Sum::make()->label("Total (sum)") ,
+                        Range::make()->label("Range"),
+                        Average::make()->label("average"),
+                    ])
                     ->label('BOPD')
                     ->color('warning')
                     ->sortable(),
 
                 BadgeColumn::make('mmcf')
+                    ->summarize([
+                         Tables\Columns\Summarizers\Sum::make()->label("Total (sum)") ,
+                        Range::make()->label("Range"),
+                        Average::make()->label("average"),
+                    ])
                     ->label('MMCF')
                     ->color('warning')
                     ->sortable(),
 
                 BadgeColumn::make('bwpd')
+                    ->summarize([
+                         Tables\Columns\Summarizers\Sum::make()->label("Total (sum)") ,
+                        Range::make()->label("Range"),
+                        Average::make()->label("average"),
+                    ])
                     ->label('BWPD')
                     ->color('warning')
                     ->sortable(),
@@ -350,74 +400,159 @@ class WellUsageResource extends Resource
 
                 BadgeColumn::make('ppm')
                     ->label('Parts Per Million (PPM)')
+                    ->summarize([
+                         Tables\Columns\Summarizers\Sum::make()->label("Total (sum)") ,
+                        Range::make()->label("Range"),
+                        Average::make()->label("average"),
+                    ])
                     ->color('danger')
                     ->sortable(),
 
                 BadgeColumn::make('quarts_per_day')
+                    ->summarize([
+                         Tables\Columns\Summarizers\Sum::make()->label("Total (sum)") ,
+                        Range::make()->label("Range"),
+                        Average::make()->label("average"),
+                    ])
                     ->label('Quarts Per Day')
                     ->color('danger')
                     ->sortable(),
 
                 BadgeColumn::make('gallons_per_day')
+                    ->summarize([
+                         Tables\Columns\Summarizers\Sum::make()->label("Total (sum)") ,
+                        Range::make()->label("Range"),
+                        Average::make()->label("average"),
+                    ])
                     ->label('Gallons Per Day')
                     ->color('danger')
                     ->sortable(),
 
                 BadgeColumn::make('gallons_per_month')
+                    ->summarize([
+                         Tables\Columns\Summarizers\Sum::make()->label("Total (sum)") ,
+                        Range::make()->label("Range"),
+                        Average::make()->label("average"),
+                    ])
                     ->label('Gallons Per Month')
                     ->color('danger')
                     ->sortable(),
 
-                TextColumn::make('usage_location')
-                    ->label('Usage Location')
-                    ->sortable()
-                    ->searchable(),
+                // TextColumn::make('usage_location')
+                //     ->label('Usage Location')
+                //     ->sortable()
+                //     ->searchable(),
 
-                TextColumn::make('program')
-                    ->label('Program')
-                    ->sortable()
-                    ->searchable(),
+                // TextColumn::make('program')
+                //     ->label('Program')
+                //     ->sortable()
+                //     ->searchable(),
 
                 BadgeColumn::make('deliveries_gallons')
                     ->label('Deliveries (Gallons)')
                     ->color('success')
+                    ->summarize([
+                         Tables\Columns\Summarizers\Sum::make()->label("Total (sum)") ,
+                        Range::make()->label("Range"),
+                        Average::make()->label("average"),
+                    ])
                     ->sortable(),
 
                 BadgeColumn::make('ppg')
                     ->label('Price Per Gallon')
                     ->color('primary')
+                    ->summarize([
+                         Tables\Columns\Summarizers\Sum::make()->label("Total (sum)") ,
+                        Range::make()->label("Range"),
+                        Average::make()->label("average"),
+                    ])
                     ->sortable(),
 
-                BadgeColumn::make('monthly_cost')
-                    ->label('Monthly Cost')
-                    ->color('primary')
-                    ->sortable(),
+
 
                 BadgeColumn::make('bwe')
                     ->label('BWE')
                     ->color('primary')
+
+
+                    ->summarize([
+                         Tables\Columns\Summarizers\Sum::make()->label("Total (sum)") ,
+                        Range::make()->label("Range"),
+                        Average::make()->label("average"),
+                    ])
                     ->sortable(),
 
                 BadgeColumn::make('bowg')
                     ->label('BOWG')
                     ->color('primary')
+
+                    ->summarize([
+                         Tables\Columns\Summarizers\Sum::make()->label("Total (sum)"),
+                        Range::make()->label("Range"),
+                        Average::make()->label("average"),
+                    ])
                     ->sortable(),
             ])
             ->filters([
-                //
-            ])
-            ->actions([
-//                Action::make('duplicate')
-//                    ->label('Duplicate')
-//                    ->icon('heroicon-o-document-duplicate') // Use an appropriate icon here
-//                    ->action(function ($record) {
-//                        // Duplicate the record
-//                        $duplicate = $record->replicate(); // Clone the record
-//                        $duplicate->save(); // Save the new cloned record
+
+                Tables\Filters\SelectFilter::make('well_id')
+                    ->label('Select Well')
+                    ->searchable()
+                    ->preload()
+                    ->relationship('well', 'lease'),
+//                SelectFilter::make('site_id')
+//                    ->label('Select Site')
+//                    ->searchable()
+//                    ->preload()
+//                    ->options(
+//                        ['' => 'All Sites'] + Site::whereNotNull('location')->orderBy('location')->pluck('location', 'id')->toArray()
+//                    )
+//                    ->query(function ($query, $filter) {
+//                        // Get the filter value using getState()
+//                        $siteId = $filter->getState();
 //
-//                        // Use Filament's resource URL helper for redirection
-//                        return redirect(WellUsageResource::getUrl('edit', ['record' => $duplicate->id]));
+//                        // If no site is selected, return all records (no filter applied)
+//                        if (empty($siteId)) {
+//                            return $query;
+//                        }
+//
+//                        // If a specific site is selected, filter by site_id
+//                        return $query->whereHas('well', function ($query) use ($siteId) {
+//                            $query->where('site_id', $siteId);
+//                        });
 //                    }),
+                Filter::make('created_at')
+                    ->default(now())
+                    ->form([
+                        Flatpickr::make('month')->monthSelect()->animate(),
+//                        DatePicker::make('created_from')
+//                            ->native(false),
+//                        DatePicker::make('created_until')->native(false),
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        // Get the selected month or use the current month as default
+                        $selectedMonth = $data['month'] ?? now()->format('Y-m');
+
+                        // Determine the start and end dates of the selected month
+                        $startDate = Carbon::parse($selectedMonth)->startOfMonth();
+                        $endDate = Carbon::parse($selectedMonth)->endOfMonth();
+
+                        // Apply the date filter
+                        return $query->whereBetween('created_at', [$startDate, $endDate]);
+                    })
+                ], layout: FiltersLayout::AboveContent)
+            ->actions([
+                //                Action::make('duplicate')
+                //                    ->label('Duplicate')
+                //                    ->icon('heroicon-o-document-duplicate') // Use an appropriate icon here
+                //                    ->action(function ($record) {
+                //                        // Duplicate the record
+                //                        $duplicate = $record->replicate(); // Clone the record
+                //                        $duplicate->save(); // Save the new cloned record
+                //
+                //                        // Use Filament's resource URL helper for redirection
+                //                        return redirect(WellUsageResource::getUrl('edit', ['record' => $duplicate->id]));
+                //                    }),
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),
@@ -428,7 +563,6 @@ class WellUsageResource extends Resource
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ]);
-
     }
 
     public static function Infolist(Infolist $infolist): Infolist
@@ -436,129 +570,129 @@ class WellUsageResource extends Resource
         return $infolist
             ->schema([
                 Tabs::make('Well Usage') // Added Tabs to organize sections more effectively
-                ->columnSpanFull() // Ensures the tabs take up the full width
-                ->tabs([
-                    Tab::make('Usage Details')
-                        ->schema([
-                            \Filament\Infolists\Components\Section::make('Usage Details')
-                                ->columns(2) // Set columns for better width utilization
-//                                ->color('primary') // Correct method to apply color to the section header
-                                ->schema([
-                                    \Filament\Infolists\Components\TextEntry::make('well.lease')
-                                        ->label('Well Lease')
-                                        ->badge()->color('success'),
-                                    \Filament\Infolists\Components\TextEntry::make('created_at')
-                                        ->label('Month')
-                                        ->date('M, Y')
-                                        ->badge()->color('info'),
-                                    \Filament\Infolists\Components\Section::make('Production (Daily Average)')
-//                                        ->color('secondary') // Corrected color attribute
-                                        ->schema([
-                                            \Filament\Infolists\Components\Grid::make(2) // Changed to 2 columns for a better layout
+                    ->columnSpanFull() // Ensures the tabs take up the full width
+                    ->tabs([
+                        Tab::make('Usage Details')
+                            ->schema([
+                                \Filament\Infolists\Components\Section::make('Usage Details')
+                                    ->columns(2) // Set columns for better width utilization
+                                    //                                ->color('primary') // Correct method to apply color to the section header
+                                    ->schema([
+                                        \Filament\Infolists\Components\TextEntry::make('well.lease')
+                                            ->label('Well Lease')
+                                            ->badge()->color('success'),
+                                        \Filament\Infolists\Components\TextEntry::make('created_at')
+                                            ->label('Month')
+                                            ->date('M, Y')
+                                            ->badge()->color('info'),
+                                        \Filament\Infolists\Components\Section::make('Production (Daily Average)')
+                                            //                                        ->color('secondary') // Corrected color attribute
                                             ->schema([
-                                                \Filament\Infolists\Components\TextEntry::make('production_location')
-                                                    ->label('Production Location')
-                                                    ->badge()->color('warning'),
-                                                \Filament\Infolists\Components\TextEntry::make('bopd')
-                                                    ->label('BOPD')
-                                                    ->badge()->color('warning'),
-                                                \Filament\Infolists\Components\TextEntry::make('mmcf')
-                                                    ->label('MMCF')
-                                                    ->badge()->color('warning'),
-                                                \Filament\Infolists\Components\TextEntry::make('bwpd')
-                                                    ->label('BWPD')
-                                                    ->badge()->color('warning'),
+                                                \Filament\Infolists\Components\Grid::make(2) // Changed to 2 columns for a better layout
+                                                    ->schema([
+                                                        // \Filament\Infolists\Components\TextEntry::make('production_location')
+                                                        //     ->label('Production Location')
+                                                        //     ->badge()->color('warning'),
+                                                        \Filament\Infolists\Components\TextEntry::make('bopd')
+                                                            ->label('BOPD')
+                                                            ->badge()->color('warning'),
+                                                        \Filament\Infolists\Components\TextEntry::make('mmcf')
+                                                            ->label('MMCF')
+                                                            ->badge()->color('warning'),
+                                                        \Filament\Infolists\Components\TextEntry::make('bwpd')
+                                                            ->label('BWPD')
+                                                            ->badge()->color('warning'),
+                                                    ]),
                                             ]),
-                                        ]),
-                                ]),
-                        ]),
-                    Tab::make('Chemical Injection Points')
-                        ->schema([
-                            \Filament\Infolists\Components\Section::make('Chemical Injection Points')
-                                ->columns(2) // Set columns to use full width effectively
-//                                ->badge() ->color('primary')
-                                ->schema([
-                                    \Filament\Infolists\Components\Section::make('Details')
-//                                        ->badge() ->color('secondary')
-                                        ->schema([
-                                            \Filament\Infolists\Components\Grid::make(2)
-                                                ->schema([
-                                                    \Filament\Infolists\Components\TextEntry::make('product_type')
-                                                        ->label('Product Type')
-                                                        ->badge()->color('info'),
-                                                    \Filament\Infolists\Components\TextEntry::make('product_name')
-                                                        ->label('Product Name')
-                                                        ->badge()->color('info'),
-                                                    \Filament\Infolists\Components\TextEntry::make('injection_location')
-                                                        ->label('Injection Location')
-                                                        ->badge()->color('info'),
-                                                ]),
-                                        ]),
-                                    \Filament\Infolists\Components\Section::make('Data (Continuous Applications)')
-//                                        ->badge() ->color('secondary')
-                                        ->schema([
-                                            \Filament\Infolists\Components\Grid::make(2)
-                                                ->schema([
-                                                    \Filament\Infolists\Components\TextEntry::make('ppm')
-                                                        ->label('Parts Per Million (PPM)')
-                                                        ->badge()->color('danger'),
-                                                    \Filament\Infolists\Components\TextEntry::make('quarts_per_day')
-                                                        ->label('Quarts Per Day')
-                                                        ->badge()->color('danger'),
-                                                    \Filament\Infolists\Components\TextEntry::make('gallons_per_day')
-                                                        ->label('Gallons Per Day')
-                                                        ->badge()->color('danger'),
-                                                    \Filament\Infolists\Components\TextEntry::make('gallons_per_month')
-                                                        ->label('Gallons Per Month')
-                                                        ->badge()->color('danger'),
-                                                ]),
-                                        ]),
-                                ]),
-                        ]),
-                    Tab::make('Usage For Month')
-                        ->schema([
-                            \Filament\Infolists\Components\Section::make('Usage For Month')
-                                ->columns(2) // Set columns for full width usage
-//                                ->badge() ->color('primary')
-                                ->schema([
-                                    \Filament\Infolists\Components\Section::make('Details')
-//                                        ->color('secondary')
-                                        ->schema([
-                                            \Filament\Infolists\Components\Grid::make(2)
-                                                ->schema([
-                                                    \Filament\Infolists\Components\TextEntry::make('usage_location')
-                                                        ->label('Usage Location')
-                                                        ->badge()->color('success'),
-                                                    \Filament\Infolists\Components\TextEntry::make('program')
-                                                        ->label('Program')
-                                                        ->badge()->color('success'),
-                                                    \Filament\Infolists\Components\TextEntry::make('deliveries_gallons')
-                                                        ->label('Deliveries (Gallons)')
-                                                        ->badge()->color('success'),
-                                                ]),
-                                        ]),
-                                    \Filament\Infolists\Components\Section::make('Data (Cost Based On Usage And Deliveries)')
-//                                        ->badge() ->color('secondary')
-                                        ->schema([
-                                            \Filament\Infolists\Components\Grid::make(2)
-                                                ->schema([
-                                                    \Filament\Infolists\Components\TextEntry::make('ppg')
-                                                        ->label('Price Per Gallon')
-                                                        ->badge()->color('primary'),
-                                                    \Filament\Infolists\Components\TextEntry::make('monthly_cost')
-                                                        ->label('Monthly Cost')
-                                                        ->badge()->color('primary'),
-                                                    \Filament\Infolists\Components\TextEntry::make('bwe')
-                                                        ->label('BWE')
-                                                        ->badge()->color('primary'),
-                                                    \Filament\Infolists\Components\TextEntry::make('bowg')
-                                                        ->label('BOWG')
-                                                        ->badge()->color('primary'),
-                                                ]),
-                                        ]),
-                                ]),
-                        ]),
-                ]),
+                                    ]),
+                            ]),
+                        Tab::make('Chemical Injection Points')
+                            ->schema([
+                                \Filament\Infolists\Components\Section::make('Chemical Injection Points')
+                                    ->columns(2) // Set columns to use full width effectively
+                                    //                                ->badge() ->color('primary')
+                                    ->schema([
+                                        \Filament\Infolists\Components\Section::make('Details')
+                                            //                                        ->badge() ->color('secondary')
+                                            ->schema([
+                                                \Filament\Infolists\Components\Grid::make(2)
+                                                    ->schema([
+                                                        \Filament\Infolists\Components\TextEntry::make('product_type')
+                                                            ->label('Product Type')
+                                                            ->badge()->color('info'),
+                                                        \Filament\Infolists\Components\TextEntry::make('product_name')
+                                                            ->label('Product Name')
+                                                            ->badge()->color('info'),
+                                                        \Filament\Infolists\Components\TextEntry::make('injection_location')
+                                                            ->label('Injection Location')
+                                                            ->badge()->color('info'),
+                                                    ]),
+                                            ]),
+                                        \Filament\Infolists\Components\Section::make('Data (Continuous Applications)')
+                                            //                                        ->badge() ->color('secondary')
+                                            ->schema([
+                                                \Filament\Infolists\Components\Grid::make(2)
+                                                    ->schema([
+                                                        \Filament\Infolists\Components\TextEntry::make('ppm')
+                                                            ->label('Parts Per Million (PPM)')
+                                                            ->badge()->color('danger'),
+                                                        \Filament\Infolists\Components\TextEntry::make('quarts_per_day')
+                                                            ->label('Quarts Per Day')
+                                                            ->badge()->color('danger'),
+                                                        \Filament\Infolists\Components\TextEntry::make('gallons_per_day')
+                                                            ->label('Gallons Per Day')
+                                                            ->badge()->color('danger'),
+                                                        \Filament\Infolists\Components\TextEntry::make('gallons_per_month')
+                                                            ->label('Gallons Per Month')
+                                                            ->badge()->color('danger'),
+                                                    ]),
+                                            ]),
+                                    ]),
+                            ]),
+                        Tab::make('Usage For Month')
+                            ->schema([
+                                \Filament\Infolists\Components\Section::make('Usage For Month')
+                                    ->columns(2) // Set columns for full width usage
+                                    //                                ->badge() ->color('primary')
+                                    ->schema([
+                                        \Filament\Infolists\Components\Section::make('Details')
+                                            //                                        ->color('secondary')
+                                            ->schema([
+                                                \Filament\Infolists\Components\Grid::make(2)
+                                                    ->schema([
+                                                        // \Filament\Infolists\Components\TextEntry::make('usage_location')
+                                                        //     ->label('Usage Location')
+                                                        //     ->badge()->color('success'),
+                                                        // \Filament\Infolists\Components\TextEntry::make('program')
+                                                        //     ->label('Program')
+                                                        //     ->badge()->color('success'),
+                                                        \Filament\Infolists\Components\TextEntry::make('deliveries_gallons')
+                                                            ->label('Deliveries (Gallons)')
+                                                            ->badge()->color('success'),
+                                                    ]),
+                                            ]),
+                                        \Filament\Infolists\Components\Section::make('Data (Cost Based On Usage And Deliveries)')
+                                            //                                        ->badge() ->color('secondary')
+                                            ->schema([
+                                                \Filament\Infolists\Components\Grid::make(2)
+                                                    ->schema([
+                                                        \Filament\Infolists\Components\TextEntry::make('ppg')
+                                                            ->label('Price Per Gallon')
+                                                            ->badge()->color('primary'),
+                                                        \Filament\Infolists\Components\TextEntry::make('monthly_cost')
+                                                            ->label('Monthly Cost')
+                                                            ->badge()->color('primary'),
+                                                        \Filament\Infolists\Components\TextEntry::make('bwe')
+                                                            ->label('BWE')
+                                                            ->badge()->color('primary'),
+                                                        \Filament\Infolists\Components\TextEntry::make('bowg')
+                                                            ->label('BOWG')
+                                                            ->badge()->color('primary'),
+                                                    ]),
+                                            ]),
+                                    ]),
+                            ]),
+                    ]),
             ]);
     }
 
@@ -628,7 +762,7 @@ class WellUsageResource extends Resource
             $set('monthly_cost', 0);
         }
 
-// BWE Calculation: monthly_cost / (BWPD * 30.3)
+        // BWE Calculation: monthly_cost / (BWPD * 30.3)
         $monthlyCost = $get('monthly_cost');
         $bwpd = $get('bwpd');
 

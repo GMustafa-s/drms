@@ -2,53 +2,68 @@
 
 namespace App\Filament\Widgets;
 
-use App\Models\Site;
+use App\Models\Product;  // Importing the Product model
+use Carbon\Carbon;
 use Filament\Facades\Filament;
 use Filament\Widgets\ChartWidget;
-use Flowframe\Trend\Trend;
-use Flowframe\Trend\TrendValue;
+use Filament\Widgets\Concerns\InteractsWithPageFilters;
 
 class chart1 extends ChartWidget
 {
-    protected static ?string $heading = 'Sites Chart';
+    use InteractsWithPageFilters;
+
+    protected static ?string $heading = 'Monthly Cost by Product';
 
     protected function getData(): array
     {
+        // Get the selected month from the filter form in the dashboard
+        $selectedMonth = $this->filters['report_month'] ?? now()->format('Y-m');
+
+        // Parse the selected month to determine the start and end date
+        $startDate = Carbon::parse($selectedMonth)->startOfMonth();
+        $endDate = Carbon::parse($selectedMonth)->endOfMonth();
+
         // Get the current tenant
         $tenant = Filament::getTenant();
 
-        // Filter the Site data by tenant first
-        $query = Site::where('company_id', $tenant->id);
+        // Query all WellUsages and join with Products to get the product name
+        $wellUsages = \App\Models\WellUsage::where('company_id', $tenant->id)
+            ->whereBetween('created_at', [$startDate, $endDate])  // Only WellUsages in the selected month
+            ->get()
+            ->groupBy('product_name');  // Group by product_name (which is actually the product ID)
 
-        // Pass the filtered query to Trend
-        $data = Trend::query($query)
-            ->between(
-                start: now()->startOfYear(),
-                end: now()->endOfYear(),
-            )
-            ->perMonth()
-            ->count();
+        // Prepare data for the chart
+        $productData = $wellUsages->map(function ($wellUsageGroup, $productId) {
+            // Fetch the product name from the Product model using the product ID
+            $product = Product::find($productId);
+            $productName = $product ? $product->name : "Product #{$productId}";
+
+            // Sum up the monthly cost for the WellUsages grouped by product
+            $totalCost = $wellUsageGroup->sum('monthly_cost');
+
+            return [
+                'productName' => $productName,
+                'totalCost' => $totalCost,
+            ];
+        });
+
+        // Filter out products with zero cost
+        $filteredData = $productData->filter(fn($data) => $data['totalCost'] > 0);
+
         return [
-            'datasets' =>
+            'datasets' => [
                 [
-                    [
-                        'label' => ["Sites Covered by month",],
-                        'backgroundColor' => "#f56954",
-                        'borderColor' => "#f56954",
-                        'pointBackgroundColor' => "#f56954",
-                        'pointBorderColor' => "#f56954",
-                        'pointHoverBackgroundColor' => "#f56954",
-                        'pointHoverBorderColor' => "#f56954",
-                        'data' =>$data->map(fn (TrendValue $value) => $value->aggregate),
-                    ]
-
+                    'label' => 'Monthly Costs',
+                    'backgroundColor' => ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40'],
+                    'data' => $filteredData->pluck('totalCost'),
                 ],
-            'labels' =>$data->map(fn (TrendValue $value) => $value->date),
+            ],
+            'labels' => $filteredData->pluck('productName'),
         ];
     }
 
     protected function getType(): string
     {
-        return 'line';
+        return 'pie';
     }
 }
