@@ -32,6 +32,7 @@ use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 
 use Illuminate\Contracts\Database\Eloquent\Builder;
+use Illuminate\Support\Arr;
 use PhpOffice\PhpSpreadsheet\Calculation\MathTrig\Sum;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportAction;
 
@@ -500,27 +501,37 @@ class WellUsageResource extends Resource
                     ->searchable()
                     ->preload()
                     ->relationship('well', 'lease'),
-//                SelectFilter::make('site_id')
-//                    ->label('Select Site')
-//                    ->searchable()
-//                    ->preload()
-//                    ->options(
-//                        ['' => 'All Sites'] + Site::whereNotNull('location')->orderBy('location')->pluck('location', 'id')->toArray()
-//                    )
-//                    ->query(function ($query, $filter) {
-//                        // Get the filter value using getState()
-//                        $siteId = $filter->getState();
-//
-//                        // If no site is selected, return all records (no filter applied)
-//                        if (empty($siteId)) {
-//                            return $query;
-//                        }
-//
-//                        // If a specific site is selected, filter by site_id
-//                        return $query->whereHas('well', function ($query) use ($siteId) {
-//                            $query->where('site_id', $siteId);
-//                        });
-//                    }),
+                SelectFilter::make('site_id') // The filter will use site_id
+                ->label('Select Site')
+                    ->searchable()
+                    ->preload()
+                    ->multiple() // Enable multiple selection if needed
+                    ->options(function () {
+                        // Get the current tenant using Filament's getTenant method
+                        $tenant = Filament::getTenant();
+
+                        // Fetch the sites related to the current tenant
+                        return Site::where('company_id', $tenant->id) // Assuming 'company_id' is the field to match the tenant
+                        ->pluck('location', 'id') // Pluck the location (or whatever field is needed)
+                        ->toArray();
+                    })
+                    ->query(function ($query, $filter) {
+                        $siteIds = $filter->getState(); // Get the selected site IDs
+
+                        // If no sites are selected, return all records
+                        if (empty($siteIds)) {
+                            return $query; // Don't apply any filter, show all records
+                        }
+
+                        // Flatten the array in case it contains nested arrays
+                        $siteIds = Arr::flatten($siteIds);
+
+                        // Apply the filter to WellUsage, filtering by site_id
+                        return $query->whereHas('well', function ($query) use ($siteIds) {
+                            // Make sure that the Well belongs to the selected Site(s)
+                            $query->whereIn('site_id', $siteIds); // Filter Well by site_id
+                        });
+                    }),
                 Filter::make('created_at')
                     ->default(now())
                     ->form([

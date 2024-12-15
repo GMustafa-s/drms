@@ -13,7 +13,7 @@ class ViewSite extends ViewRecord
     protected function getHeaderWidgets(): array
     {
         return [
-            \App\Livewire\BlogPostsChart::class
+//            \App\Livewire\BlogPostsChart::class
 //            WellUsage::class// Add your chart widget here
         ];
     }
