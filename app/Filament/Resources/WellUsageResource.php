@@ -92,66 +92,66 @@ class WellUsageResource extends Resource
                 Forms\Components\Group::make()
                     ->schema([
                         Section::make('Chemical Injection Points')
-                        ->schema([
-                            Section::make('Details')
-                                ->schema([
-                                    Grid::make(2)
-                                        ->schema([
-                                            Forms\Components\TextInput::make('product_type')
-                                                ->required()
-                                                ->label('Product Type'),
-                                            Forms\Components\Select::make('product_name')
-                                                ->searchable()
-                                                ->preload()
-                                                ->label('Product')
-                                                ->options(Product::all()->pluck('name', 'id'))
-                                                ->reactive()
-                                                ->afterStateUpdated(function (callable $set, $state) {
-                                                    if ($state) {
-                                                        $product = Product::find($state);
-                                                        $set('product_type', $product->productType->type ?? null);
-                                                    }
-                                                })
-                                                ->required(),
-                                            Forms\Components\Select::make('injection_location')
-                                                ->required()
-                                                ->searchable()
-                                                ->preload()
-                                                ->options(InjectionLocation::all()->pluck('name', 'name'))
-                                                ->label('Injection Location'),
-                                        ]),
-                                ]),
-                            Section::make('Data (Continuous Applications)')
-                                ->schema([
-                                    Grid::make(2)
-                                        ->schema([
-                                            Forms\Components\TextInput::make('ppm')
-                                                ->numeric()->reactive()->afterStateUpdated(fn(callable $get, callable $set) => static::populatePpmFromWell($get, $set))
-                                                ->required()
-                                                ->disabled()
-                                                ->dehydrated()
-                                                ->label('Parts Per Million (PPM)'),
-                                            Forms\Components\TextInput::make('quarts_per_day')
-                                                ->numeric()->reactive()->afterStateUpdated(fn(callable $get, callable $set) => static::populatePpmFromWell($get, $set))
-                                                ->required()
-                                                ->disabled()
-                                                ->dehydrated()
-                                                ->label('Quarts Per Day'),
-                                            Forms\Components\TextInput::make('gallons_per_day')
-                                                ->numeric()->reactive()->afterStateUpdated(fn(callable $get, callable $set) => static::populatePpmFromWell($get, $set))
-                                                ->required()
-                                                ->disabled()
-                                                ->dehydrated()
-                                                ->label('Gallons Per Day'),
-                                            Forms\Components\TextInput::make('gallons_per_month')
-                                                ->numeric()->reactive()->afterStateUpdated(fn(callable $get, callable $set) => static::populatePpmFromWell($get, $set))
-                                                ->required()
-                                                ->disabled()
-                                                ->dehydrated()
-                                                ->label('Gallons Per Month'),
-                                        ]),
-                                ]),
-                        ]),
+                            ->schema([
+                                Section::make('Details')
+                                    ->schema([
+                                        Grid::make(2)
+                                            ->schema([
+                                                Forms\Components\TextInput::make('product_type')
+                                                    ->required()
+                                                    ->label('Product Type'),
+                                                Forms\Components\Select::make('product_name')
+                                                    ->searchable()
+                                                    ->preload()
+                                                    ->label('Product')
+                                                    ->options(Product::all()->pluck('name', 'id'))
+                                                    ->reactive()
+                                                    ->afterStateUpdated(function (callable $set, $state) {
+                                                        if ($state) {
+                                                            $product = Product::find($state);
+                                                            $set('product_type', $product->productType->type ?? null);
+                                                        }
+                                                    })
+                                                    ->required(),
+                                                Forms\Components\Select::make('injection_location')
+                                                    ->required()
+                                                    ->searchable()
+                                                    ->preload()
+                                                    ->options(InjectionLocation::all()->pluck('name', 'name'))
+                                                    ->label('Injection Location'),
+                                            ]),
+                                    ]),
+                                Section::make('Data (Continuous Applications)')
+                                    ->schema([
+                                        Grid::make(2)
+                                            ->schema([
+                                                Forms\Components\TextInput::make('ppm')
+                                                    ->numeric()->reactive()->afterStateUpdated(fn(callable $get, callable $set) => static::populatePpmFromWell($get, $set))
+                                                    ->required()
+                                                    ->disabled()
+                                                    ->dehydrated()
+                                                    ->label('Parts Per Million (PPM)'),
+                                                Forms\Components\TextInput::make('quarts_per_day')
+                                                    ->numeric()->reactive()->afterStateUpdated(fn(callable $get, callable $set) => static::populatePpmFromWell($get, $set))
+                                                    ->required()
+                                                    ->disabled()
+                                                    ->dehydrated()
+                                                    ->label('Quarts Per Day'),
+                                                Forms\Components\TextInput::make('gallons_per_day')
+                                                    ->numeric()->reactive()->afterStateUpdated(fn(callable $get, callable $set) => static::populatePpmFromWell($get, $set))
+                                                    ->required()
+                                                    ->disabled()
+                                                    ->dehydrated()
+                                                    ->label('Gallons Per Day'),
+                                                Forms\Components\TextInput::make('gallons_per_month')
+                                                    ->numeric()->reactive()->afterStateUpdated(fn(callable $get, callable $set) => static::populatePpmFromWell($get, $set))
+                                                    ->required()
+                                                    ->disabled()
+                                                    ->dehydrated()
+                                                    ->label('Gallons Per Month'),
+                                            ]),
+                                    ]),
+                            ]),
 
                     ]),
                 Forms\Components\Group::make()->schema([
@@ -342,7 +342,7 @@ class WellUsageResource extends Resource
                 BadgeColumn::make('monthly_cost')
                     ->label('Monthly Cost')
                     ->summarize([
-                         Tables\Columns\Summarizers\Sum::make()->label("Total (sum)") ,
+                        Tables\Columns\Summarizers\Sum::make()->label("Total (sum)"),
                         Range::make()->label("Range"),
                         Average::make()->label("average"),
                     ])
@@ -356,7 +356,7 @@ class WellUsageResource extends Resource
 
                 BadgeColumn::make('bopd')
                     ->summarize([
-                         Tables\Columns\Summarizers\Sum::make()->label("Total (sum)") ,
+                        Tables\Columns\Summarizers\Sum::make()->label("Total (sum)"),
                         Range::make()->label("Range"),
                         Average::make()->label("average"),
                     ])
@@ -366,7 +366,7 @@ class WellUsageResource extends Resource
 
                 BadgeColumn::make('mmcf')
                     ->summarize([
-                         Tables\Columns\Summarizers\Sum::make()->label("Total (sum)") ,
+                        Tables\Columns\Summarizers\Sum::make()->label("Total (sum)"),
                         Range::make()->label("Range"),
                         Average::make()->label("average"),
                     ])
@@ -376,7 +376,7 @@ class WellUsageResource extends Resource
 
                 BadgeColumn::make('bwpd')
                     ->summarize([
-                         Tables\Columns\Summarizers\Sum::make()->label("Total (sum)") ,
+                        Tables\Columns\Summarizers\Sum::make()->label("Total (sum)"),
                         Range::make()->label("Range"),
                         Average::make()->label("average"),
                     ])
@@ -402,7 +402,7 @@ class WellUsageResource extends Resource
                 BadgeColumn::make('ppm')
                     ->label('Parts Per Million (PPM)')
                     ->summarize([
-                         Tables\Columns\Summarizers\Sum::make()->label("Total (sum)") ,
+                        Tables\Columns\Summarizers\Sum::make()->label("Total (sum)"),
                         Range::make()->label("Range"),
                         Average::make()->label("average"),
                     ])
@@ -411,7 +411,7 @@ class WellUsageResource extends Resource
 
                 BadgeColumn::make('quarts_per_day')
                     ->summarize([
-                         Tables\Columns\Summarizers\Sum::make()->label("Total (sum)") ,
+                        Tables\Columns\Summarizers\Sum::make()->label("Total (sum)"),
                         Range::make()->label("Range"),
                         Average::make()->label("average"),
                     ])
@@ -421,7 +421,7 @@ class WellUsageResource extends Resource
 
                 BadgeColumn::make('gallons_per_day')
                     ->summarize([
-                         Tables\Columns\Summarizers\Sum::make()->label("Total (sum)") ,
+                        Tables\Columns\Summarizers\Sum::make()->label("Total (sum)"),
                         Range::make()->label("Range"),
                         Average::make()->label("average"),
                     ])
@@ -431,7 +431,7 @@ class WellUsageResource extends Resource
 
                 BadgeColumn::make('gallons_per_month')
                     ->summarize([
-                         Tables\Columns\Summarizers\Sum::make()->label("Total (sum)") ,
+                        Tables\Columns\Summarizers\Sum::make()->label("Total (sum)"),
                         Range::make()->label("Range"),
                         Average::make()->label("average"),
                     ])
@@ -453,7 +453,7 @@ class WellUsageResource extends Resource
                     ->label('Deliveries (Gallons)')
                     ->color('success')
                     ->summarize([
-                         Tables\Columns\Summarizers\Sum::make()->label("Total (sum)") ,
+                        Tables\Columns\Summarizers\Sum::make()->label("Total (sum)"),
                         Range::make()->label("Range"),
                         Average::make()->label("average"),
                     ])
@@ -463,7 +463,7 @@ class WellUsageResource extends Resource
                     ->label('Price Per Gallon')
                     ->color('primary')
                     ->summarize([
-                         Tables\Columns\Summarizers\Sum::make()->label("Total (sum)") ,
+                        Tables\Columns\Summarizers\Sum::make()->label("Total (sum)"),
                         Range::make()->label("Range"),
                         Average::make()->label("average"),
                     ])
@@ -477,7 +477,7 @@ class WellUsageResource extends Resource
 
 
                     ->summarize([
-                         Tables\Columns\Summarizers\Sum::make()->label("Total (sum)") ,
+                        Tables\Columns\Summarizers\Sum::make()->label("Total (sum)"),
                         Range::make()->label("Range"),
                         Average::make()->label("average"),
                     ])
@@ -488,7 +488,7 @@ class WellUsageResource extends Resource
                     ->color('primary')
 
                     ->summarize([
-                         Tables\Columns\Summarizers\Sum::make()->label("Total (sum)"),
+                        Tables\Columns\Summarizers\Sum::make()->label("Total (sum)"),
                         Range::make()->label("Range"),
                         Average::make()->label("average"),
                     ])
@@ -500,9 +500,15 @@ class WellUsageResource extends Resource
                     ->label('Select Well')
                     ->searchable()
                     ->preload()
-                    ->relationship('well', 'lease'),
+                    ->options(function () {
+                        // Get the current tenant using Filament's getTenant method
+                        $tenant = Filament::getTenant();
+                        return \App\Models\Well::where('company_id', $tenant->id)
+                            ->pluck('lease', 'id')
+                            ->toArray();
+                    }),
                 SelectFilter::make('site_id') // The filter will use site_id
-                ->label('Select Site')
+                    ->label('Select Site')
                     ->searchable()
                     ->preload()
                     ->multiple() // Enable multiple selection if needed
@@ -512,8 +518,8 @@ class WellUsageResource extends Resource
 
                         // Fetch the sites related to the current tenant
                         return Site::where('company_id', $tenant->id) // Assuming 'company_id' is the field to match the tenant
-                        ->pluck('location', 'id') // Pluck the location (or whatever field is needed)
-                        ->toArray();
+                            ->pluck('location', 'id') // Pluck the location (or whatever field is needed)
+                            ->toArray();
                     })
                     ->query(function ($query, $filter) {
                         $siteIds = $filter->getState(); // Get the selected site IDs
@@ -536,9 +542,9 @@ class WellUsageResource extends Resource
                     ->default(now())
                     ->form([
                         Flatpickr::make('month')->monthSelect()->animate(),
-//                        DatePicker::make('created_from')
-//                            ->native(false),
-//                        DatePicker::make('created_until')->native(false),
+                        //                        DatePicker::make('created_from')
+                        //                            ->native(false),
+                        //                        DatePicker::make('created_until')->native(false),
                     ])
                     ->query(function (Builder $query, array $data): Builder {
                         // Get the selected month or use the current month as default
@@ -551,7 +557,7 @@ class WellUsageResource extends Resource
                         // Apply the date filter
                         return $query->whereBetween('created_at', [$startDate, $endDate]);
                     })
-                ], layout: FiltersLayout::AboveContent)
+            ], layout: FiltersLayout::AboveContent)
             ->actions([
                 //                Action::make('duplicate')
                 //                    ->label('Duplicate')
