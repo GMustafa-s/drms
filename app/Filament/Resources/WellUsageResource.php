@@ -525,7 +525,7 @@ class WellUsageResource extends Resource
                         $siteIds = $filter->getState(); // Get the selected site IDs
 
                         // If no sites are selected, return all records
-                        if (empty($siteIds)) {
+                        if (empty($siteIds) || (isset($siteIds['values']) && empty($siteIds['values']))) {
                             return $query; // Don't apply any filter, show all records
                         }
 
