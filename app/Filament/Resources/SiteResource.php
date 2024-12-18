@@ -121,8 +121,13 @@ class SiteResource extends Resource
                 TextColumn::make('monthly_cost_by_site')
                     ->label('Monthly Cost by Site')
                     ->formatStateUsing(function ($record) {
-                        // Get the selected month from the filter
-                        $reportMonth = request()->input('tableFilters.month_selector.report_month', now()->format('Y-m'));
+                        $reportMonth = null;
+                        if (request()->has('components') && isset(request()->get('components')[0]['updates']['tableFilters.month_selector.report_month'])) {
+                            $reportMonth = request()->get('components')[0]['updates']['tableFilters.month_selector.report_month'];
+                        }else{
+                            $reportMonth = request()->input('tableFilters.month_selector.report_month', now()->format('Y-m'));
+                        }
+
                         return $record->monthlyCost($record->id, $reportMonth);
                     })
                     ->default('0'),
@@ -130,8 +135,13 @@ class SiteResource extends Resource
                 TextColumn::make('BWE_by_site')
                     ->label('BWE by Site')
                     ->formatStateUsing(function ($record) {
-                        // Get the selected month from the filter
-                        $reportMonth = request()->input('tableFilters.month_selector.report_month', now()->format('Y-m'));
+                        $reportMonth = null;
+                        if (request()->has('components') && isset(request()->get('components')[0]['updates']['tableFilters.month_selector.report_month'])) {
+                            $reportMonth = request()->get('components')[0]['updates']['tableFilters.month_selector.report_month'];
+                        }else{
+                            $reportMonth = request()->input('tableFilters.month_selector.report_month', now()->format('Y-m'));
+                        }
+
                         return $record->BWE($record->id, $reportMonth);
                     })
                     ->default('0'),
@@ -139,8 +149,12 @@ class SiteResource extends Resource
                 TextColumn::make('BWPD_by_site')
                     ->label('BWPD by Site')
                     ->formatStateUsing(function ($record) {
-                        // Get the selected month from the filter
-                        $reportMonth = request()->input('tableFilters.month_selector.report_month', now()->format('Y-m'));
+                        $reportMonth = null;
+                        if (request()->has('components') && isset(request()->get('components')[0]['updates']['tableFilters.month_selector.report_month'])) {
+                            $reportMonth = request()->get('components')[0]['updates']['tableFilters.month_selector.report_month'];
+                        }else{
+                            $reportMonth = request()->input('tableFilters.month_selector.report_month', now()->format('Y-m'));
+                        }
                         return $record->bwpd($record->id, $reportMonth);
                     })
                     ->default('0'),
