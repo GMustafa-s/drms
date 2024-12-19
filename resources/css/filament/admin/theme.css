@@ -1,20 +1,16 @@
-@import '/vendor/filament/filament/resources/css/theme.css';
+@import "/vendor/filament/filament/resources/css/theme.css";
 
 @config 'tailwind.config.js';
 
 /* Sticky Column Header */
 .fi-ta-header .fi-ta-cell:nth-child(2) {
-    position: sticky;
-    left: 0; /* Ensures the first column header sticks */
-    z-index: 20; /* Keeps the header above other rows */
-    background-color: #fff; /* Or any background color */
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Optional shadow */
+    @apply sticky left-0  bg-white dark:bg-gray-800 shadow-md;
 }
 
 /* Sticky Column (Left-most column including its rows) */
 .fi-ta-row .fi-ta-cell:nth-child(2) {
-    position: sticky;
-    left: 0; /* Keeps the first column sticky as you scroll horizontally */
-    z-index: 10; /* Ensures it stays above other columns */
-    background-color: #fff; /* Ensures it has a solid background */
+    @apply sticky left-0  bg-white dark:bg-gray-800;
+}
+.fi-main-ctn {
+    @apply bg-gray-100 dark:bg-gray-900;
 }

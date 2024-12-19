@@ -29,7 +29,7 @@ class User extends BaseWidget
                 ->description($user->hasRole('Super Admin') ? 'Total Companies Onboarded' : 'Total Areas Covered')
                 ->chart([4, 2, 7, 4, 1, 3, 7, 1, 2, 10])
                 ->DescriptionIcon('heroicon-o-user-group')
-                ->url('/admin/users')
+                // ->url('/admin/users')
                 ->color('success'),
 
             Stat::make('Sites', \App\Models\Site::where('company_id', $tenant->id)->count())
@@ -37,7 +37,7 @@ class User extends BaseWidget
                 ->description('Total Sites Covered')
                 ->chart([4, 2, 7, 4, 1, 3, 7, 1, 2, 10])
                 ->DescriptionIcon('heroicon-o-user-group')
-                ->url('/admin/sites')
+                // ->url('/admin/sites')
                 ->color('danger'),
 
             Stat::make('Wells', \App\Models\Well::where('company_id', $tenant->id)->count())
@@ -45,7 +45,7 @@ class User extends BaseWidget
                 ->description('Total Wells running')
                 ->chart([4, 2, 7, 4, 1, 3, 7, 1, 2, 10])
                 ->DescriptionIcon('heroicon-o-user-group')
-                ->url('/admin/wells')
+                // ->url('/admin/wells')
                 ->color('primary'),
 
         ];
