@@ -4,6 +4,7 @@ namespace App\Providers\Filament;
 
 use App\Filament\Pages\Tenancy\EditCompanyProfile;
 use App\Filament\Pages\Tenancy\RegisterCompany;
+use App\Filament\Widgets\MonthlyCostByWell;
 use App\Filament\Widgets\MonthSelector;
 use App\Models\Company;
 use CharrafiMed\GlobalSearchModal\GlobalSearchModalPlugin;
@@ -54,7 +55,9 @@ class AdminPanelProvider extends PanelProvider
             ->pages([])
 
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
-
+            ->widgets([
+                MonthlyCostByWell::class
+            ])
             ->middleware([
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,
