@@ -14,35 +14,43 @@ class MonthlyCostByWellChart extends ChartWidget
 
     protected static ?string $heading = 'Monthly Cost by Well';
 
-    protected static ?int $sort = 2; // Adjust this value to determine widget order
+    protected static ?int $sort = 2;
 
     protected function getData(): array
     {
-        // Get the selected month from the filter form in the dashboard
-        $selectedMonth = $this->filters['report_month'] ?? now()->format('Y-m');
+        // Access filters from the dashboard
+        $reportMonth = $this->filters['report_month'] ?? now()->format('Y-m');
+        $dashboardState = $this->filters['Dashboard'] ?? 'site';
+        $selectedSiteIds = $this->filters['site_id'] ?? [];
 
         // Parse the selected month to determine the start and end date
-        $startDate = Carbon::parse($selectedMonth)->startOfMonth();
-        $endDate = Carbon::parse($selectedMonth)->endOfMonth();
+        $startDate = Carbon::parse($reportMonth)->startOfMonth();
+        $endDate = Carbon::parse($reportMonth)->endOfMonth();
 
         // Get the current tenant
         $tenant = Filament::getTenant();
 
-        // Query all wells for the current tenant
-        $wells = Well::whereHas('site', function ($query) use ($tenant) {
+        // Query wells based on filters
+        $query = Well::whereHas('site', function ($query) use ($tenant) {
             $query->where('company_id', $tenant->id);
-        })->with(['wellUsages' => function ($query) use ($startDate, $endDate) {
-            // Only consider WellUsages within the selected month range
+        });
+
+        // If filtering by site, apply the site filter
+        if ($dashboardState === 'site' && !empty($selectedSiteIds)) {
+            $query->whereIn('site_id', $selectedSiteIds);
+        }
+
+        // Load well usages for the selected month
+        $wells = $query->with(['wellUsages' => function ($query) use ($startDate, $endDate) {
             $query->whereBetween('created_at', [$startDate, $endDate]);
         }])->get();
 
         // Prepare data for the chart
         $wellData = $wells->map(function (Well $well) {
-            // Calculate the total monthly cost for the well
             $totalCost = $well->wellUsages->sum('monthly_cost');
 
             return [
-                'wellName' => $well->lease ?? "Well #{$well->id}",
+                'wellName' => $well->name ?? "Well #{$well->id}",
                 'totalCost' => $totalCost,
             ];
         });
@@ -63,12 +71,11 @@ class MonthlyCostByWellChart extends ChartWidget
                 'tooltips' => [
                     'callbacks' => [
                         'label' => function ($tooltipItem, $data) {
-                            // Append $ symbol to the tooltips
                             return '$' . number_format($data['datasets'][0]['data'][$tooltipItem['index']], 2);
-                        }
-                    ]
-                ]
-            ]
+                        },
+                    ],
+                ],
+            ],
         ];
     }
 

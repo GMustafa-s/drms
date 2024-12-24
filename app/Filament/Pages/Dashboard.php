@@ -4,6 +4,7 @@ namespace App\Filament\Pages;
 use App\Filament\Widgets\Chart1;
 use App\Filament\Widgets\MonthlyCostBySiteChart;
 use App\Filament\Widgets\MonthlyCostByWellChart;
+use App\Filament\Widgets\MonthlyCostbyProduct;
 use App\Filament\Widgets\User;
 use App\Filament\Widgets\WellUsage;
 use Coolsam\FilamentFlatpickr\Forms\Components\Flatpickr;
@@ -94,12 +95,13 @@ use Illuminate\Support\Facades\Log; // Import the Log facade
                 Chart1::class,
                 MonthlyCostBySiteChart::class,
                 WellUsage::class,
-                MonthlyCostBySiteChart::class
+                MonthlyCostByWellChart::class
 
             ],
             'site' => [
-//                MonthlyCostByWellChart::class,
-//                McWell::class
+                MonthlyCostByWellChart::class,
+                MonthlyCostbyProduct::class,
+                MonthlyCostBySiteChart::class
             ]
         };
     }
