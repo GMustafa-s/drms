@@ -11,7 +11,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Log;
 
 class Site extends Model
-{ use InteractsWithPageFilters;
+{
+    use InteractsWithPageFilters;
+
     protected $fillable = [
         'location',
         'comments',
@@ -29,10 +31,12 @@ class Site extends Model
     {
         return $this->hasMany(Well::class);
     }
+
     public function company(): BelongsTo
     {
         return $this->belongsTo(Company::class);
     }
+
     public function calculateMetric(int $id, ?string $filter, string $metric): float
     {
         // Parse the selected month from the filter or default to the current month
@@ -67,6 +71,14 @@ class Site extends Model
                     $monthlyCost = $wellUsages->sum('monthly_cost');
                     $bwpd = $wellUsages->sum('bwpd');
                     return $bwpd > 0 ? round($monthlyCost / ($bwpd * 30.3), 2) : 0;
+                case 'BOWG':
+                    $monthlyCost = $wellUsages->sum('monthly_cost');
+                    $bopdSum = $wellUsages->sum('bopd');
+                    $bwpdSum = $wellUsages->sum('bwpd');
+                    $mmcfSum = $wellUsages->sum('mmcf');
+
+                    $denominator = ($bopdSum * 30.3) + ($bwpdSum * 30.3) + (($mmcfSum / 6) * 30.3);
+                    return $denominator > 0 ? round($monthlyCost / $denominator, 2) : 0;
                 default:
                     return 0;
             }
@@ -76,20 +88,26 @@ class Site extends Model
         return $total->first() ?? 0;
     }
 
-    public function monthlyCost(int $id, ?string $filter): float
+    public function monthlyCost(int $id, ?string $filter): string
     {
-        return $this->calculateMetric($id, $filter, 'monthly_cost');
+        $value = $this->calculateMetric($id, $filter, 'monthly_cost');
+        return '$ ' . number_format($value, 2);
     }
-
-    public function bwpd(int $id, ?string $filter): float
+    
+    public function bwpd(int $id, ?string $filter): string
     {
-        return $this->calculateMetric($id, $filter, 'bwpd');
+       return $this->calculateMetric($id, $filter, 'bwpd');
     }
-
-    public function BWE(int $id, ?string $filter): float
+    
+    public function BWE(int $id, ?string $filter): string
     {
         return $this->calculateMetric($id, $filter, 'BWE');
     }
-
-
+    
+    public function BOWG(int $id, ?string $filter): string
+    {
+        return $this->calculateMetric($id, $filter, 'BOWG');
+         
+    }
+    
 }

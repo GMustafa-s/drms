@@ -100,19 +100,19 @@ class WellUsageResource extends Resource
                                                 Forms\Components\TextInput::make('product_type')
                                                     ->required()
                                                     ->label('Product Type'),
-                                                Forms\Components\Select::make('product_name')
+                                                    Forms\Components\Select::make('product_name')
                                                     ->searchable()
                                                     ->preload()
                                                     ->label('Product')
-                                                    ->options(Product::all()->pluck('name', 'id'))
+                                                    ->options(Product::all()->pluck('name', 'name')) // Store 'name' in the column
                                                     ->reactive()
                                                     ->afterStateUpdated(function (callable $set, $state) {
                                                         if ($state) {
-                                                            $product = Product::find($state);
-                                                            $set('product_type', $product->productType->type ?? null);
+                                                            $product = Product::where('name', $state)->first(); // Fetch the product by name
+                                                            $set('product_type', $product->productType->type ?? null); // Set related product type
                                                         }
                                                     })
-                                                    ->required(),
+                                                    ->required(),                                                
                                                 Forms\Components\Select::make('injection_location')
                                                     ->required()
                                                     ->searchable()

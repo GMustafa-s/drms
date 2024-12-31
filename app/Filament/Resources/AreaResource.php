@@ -69,7 +69,8 @@ class AreaResource extends Resource
                     ->searchable()
                     ->sortable()
                     ->badge(true),
-                TextColumn::make('monthly_cost_by_site')
+                TextColumn::make('monthly_cost_by_area')
+                    ->label('Monthly Cost by Area')
                     ->formatStateUsing(function ($record) {
                         $reportMonth = null;
                         if (request()->has('components') && isset(request()->get('components')[0]['updates']['tableFilters.month_selector.report_month'])) {
@@ -81,8 +82,21 @@ class AreaResource extends Resource
                         return $record->monthlyCost($record->id, $reportMonth);
                     })
                     ->default('0'),
-                TextColumn::make('BWE by site')
-                    ->label('BWE by site')
+                TextColumn::make('Bowg_by_area')
+                    ->label('BOWG by Area')
+                    ->formatStateUsing(function ($record) {
+                        $reportMonth = null;
+                        if (request()->has('components') && isset(request()->get('components')[0]['updates']['tableFilters.month_selector.report_month'])) {
+                            $reportMonth = request()->get('components')[0]['updates']['tableFilters.month_selector.report_month'];
+                        }else{
+                            $reportMonth = request()->input('tableFilters.month_selector.report_month', now()->format('Y-m'));
+                        }
+
+                        return $record->BOWG($record->id, $reportMonth);
+                    })
+                    ->default('0'),
+                TextColumn::make('BWE by Area')
+                    ->label('BWE by Area')
                     ->formatStateUsing(function ($record) {
                         $reportMonth = null;
                         if (request()->has('components') && isset(request()->get('components')[0]['updates']['tableFilters.month_selector.report_month'])) {
@@ -94,19 +108,19 @@ class AreaResource extends Resource
                         return $record->BWE($record->id, $reportMonth);
                     })
                     ->default('0'),
-                TextColumn::make('BWPD by site')
-                    ->label('BWPD by Site')
-                    ->formatStateUsing(function ($record) {
-                        $reportMonth = null;
-                        if (request()->has('components') && isset(request()->get('components')[0]['updates']['tableFilters.month_selector.report_month'])) {
-                            $reportMonth = request()->get('components')[0]['updates']['tableFilters.month_selector.report_month'];
-                        }else{
-                            $reportMonth = request()->input('tableFilters.month_selector.report_month', now()->format('Y-m'));
-                        }
+                // TextColumn::make('BWPD by Area')
+                //     ->label('BWPD by Area')
+                //     ->formatStateUsing(function ($record) {
+                //         $reportMonth = null;
+                //         if (request()->has('components') && isset(request()->get('components')[0]['updates']['tableFilters.month_selector.report_month'])) {
+                //             $reportMonth = request()->get('components')[0]['updates']['tableFilters.month_selector.report_month'];
+                //         }else{
+                //             $reportMonth = request()->input('tableFilters.month_selector.report_month', now()->format('Y-m'));
+                //         }
 
-                        return $record->bwpd($record->id, $reportMonth);
-                    })
-                    ->default('0'),
+                //         return $record->bwpd($record->id, $reportMonth);
+                //     })
+                //     ->default('0'),
                 Tables\Columns\IconColumn::make('is_published')
                     ->boolean(),
                 Tables\Columns\TextColumn::make('created_at')

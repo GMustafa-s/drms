@@ -146,8 +146,8 @@ class SiteResource extends Resource
                     })
                     ->default('0'),
 
-                TextColumn::make('BWPD_by_site')
-                    ->label('BWPD by Site')
+                TextColumn::make('BOWG_by_site')
+                    ->label('BOWG by Site')
                     ->formatStateUsing(function ($record) {
                         $reportMonth = null;
                         if (request()->has('components') && isset(request()->get('components')[0]['updates']['tableFilters.month_selector.report_month'])) {
@@ -155,9 +155,21 @@ class SiteResource extends Resource
                         }else{
                             $reportMonth = request()->input('tableFilters.month_selector.report_month', now()->format('Y-m'));
                         }
-                        return $record->bwpd($record->id, $reportMonth);
+                        return $record->BOWG($record->id, $reportMonth);
                     })
                     ->default('0'),
+                // TextColumn::make('BWPD_by_site')
+                //     ->label('BWPD by Site')
+                //     ->formatStateUsing(function ($record) {
+                //         $reportMonth = null;
+                //         if (request()->has('components') && isset(request()->get('components')[0]['updates']['tableFilters.month_selector.report_month'])) {
+                //             $reportMonth = request()->get('components')[0]['updates']['tableFilters.month_selector.report_month'];
+                //         }else{
+                //             $reportMonth = request()->input('tableFilters.month_selector.report_month', now()->format('Y-m'));
+                //         }
+                //         return $record->bwpd($record->id, $reportMonth);
+                //     })
+                //     ->default('0'),
                     Tables\Columns\TextColumn::make('comments')
                         ->searchable()
                         ->label('Description'),

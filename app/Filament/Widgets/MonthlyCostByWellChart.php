@@ -45,15 +45,16 @@ class MonthlyCostByWellChart extends ChartWidget
             $query->whereBetween('created_at', [$startDate, $endDate]);
         }])->get();
 
-        // Prepare data for the chart
-        $wellData = $wells->map(function (Well $well) {
-            $totalCost = $well->wellUsages->sum('monthly_cost');
+     // Prepare data for the chart
+$wellData = $wells->map(function (Well $well) {
+    $totalCost = $well->wellUsages->sum('monthly_cost');
 
-            return [
-                'wellName' => $well->name ?? "Well #{$well->id}",
-                'totalCost' => $totalCost,
-            ];
-        });
+    return [
+        'wellName' => $well->lease ?? "Well #{$well->id}", // Replaced 'name' with 'lease'
+        'totalCost' => $totalCost,
+    ];
+});
+
 
         // Filter out wells with zero cost
         $filteredData = $wellData->filter(fn($data) => $data['totalCost'] > 0);
@@ -71,16 +72,24 @@ class MonthlyCostByWellChart extends ChartWidget
                 'tooltips' => [
                     'callbacks' => [
                         'label' => function ($tooltipItem, $data) {
-                            return '$' . number_format($data['datasets'][0]['data'][$tooltipItem['index']], 2);
+                            $value = $data['datasets'][0]['data'][$tooltipItem['index']];
+                            return '$' . number_format($value, 2); // Ensure dollar sign appears
+    
                         },
                     ],
                 ],
             ],
         ];
+
+
+        
     }
 
     protected function getType(): string
     {
         return 'pie';
     }
+
+
+    
 }

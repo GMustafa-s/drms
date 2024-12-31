@@ -95,13 +95,10 @@ use Illuminate\Support\Facades\Log; // Import the Log facade
                 Chart1::class,
                 MonthlyCostBySiteChart::class,
                 WellUsage::class,
-                MonthlyCostByWellChart::class
-
             ],
             'site' => [
                 MonthlyCostByWellChart::class,
                 MonthlyCostbyProduct::class,
-                MonthlyCostBySiteChart::class
             ]
         };
     }
