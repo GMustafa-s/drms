@@ -29,10 +29,7 @@ class CompanyOverview extends Page
 
 
 
-
-
-
-
+ 
     protected function getHeaderWidgets(): array
     {    // Dynamically load widgets based on the current dashboard state
         return [

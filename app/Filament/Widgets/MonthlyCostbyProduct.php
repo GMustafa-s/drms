@@ -2,14 +2,12 @@
 
 namespace App\Filament\Widgets;
 
-use App\Models\Product;
 use Carbon\Carbon;
 use Filament\Facades\Filament;
 use Filament\Widgets\ChartWidget;
 use Filament\Widgets\Concerns\InteractsWithPageFilters;
-use Illuminate\Support\Facades\Log;
 
-class MonthlyCostbyProduct extends ChartWidget
+class MonthlyCostByProduct extends ChartWidget
 {
     use InteractsWithPageFilters;
 
@@ -17,77 +15,83 @@ class MonthlyCostbyProduct extends ChartWidget
 
     protected function getData(): array
     {
-        // Get the selected month and site_id from the filter form in the dashboard
-        $selectedMonth = $this->filters['report_month'] ?? now()->format('Y-m');
-        Log::info("Selected Month: " . $selectedMonth);
-
+        // Get the selected month and site_id from the filter form
+        $selectedMonth = $this->filters['report_month'] ?? null; // Null if no month is selected
         $siteIds = $this->filters['site_id'] ?? [];
-        Log::info("Selected Site IDs: " . json_encode($siteIds));
-
-        // Parse the selected month to determine the start and end date
-        $startDate = Carbon::parse($selectedMonth)->startOfMonth();
-        $endDate = Carbon::parse($selectedMonth)->endOfMonth();
-
-        Log::info("Start Date: " . $startDate->toDateString());
-        Log::info("End Date: " . $endDate->toDateString());
 
         // Get the current tenant
         $tenant = Filament::getTenant();
-        Log::info("Tenant ID: " . $tenant->id);
 
-        // Query WellUsages and join with the Well and Product relationships
-        $query = \App\Models\WellUsage::where('company_id', $tenant->id)
-            ->whereBetween('created_at', [$startDate, $endDate]);
+        // Build the query for WellUsages
+        $query = \App\Models\WellUsage::where('company_id', $tenant->id);
 
-        if (!empty($siteIds)) {
-            // Add site filter if any site is selected
-            $query->whereHas('well', function ($wellQuery) use ($siteIds) {
-                $wellQuery->whereIn('site_id', $siteIds);
-            });
+        // If a month is selected, apply the date range filter
+        if ($selectedMonth) {
+            $startDate = Carbon::parse($selectedMonth)->startOfMonth();
+            $endDate = Carbon::parse($selectedMonth)->endOfMonth();
+            $query->whereBetween('created_at', [$startDate, $endDate]);
         }
 
-        // Get the WellUsages and group them by product_name (not product_id)
-        $wellUsages = $query->get();
+        // If sites are selected, filter the WellUsages by site_ids
+        if (!empty($siteIds)) {
+            $query->whereHas('well', fn($wellQuery) => $wellQuery->whereIn('site_id', $siteIds));
+        }
 
-        // Log the WellUsages data before grouping
-        Log::info("WellUsages Data: " . json_encode($wellUsages->toArray()));
+        // Get the WellUsages with eager loading for better performance
+        $wellUsages = $query->with('well')->get();
 
-        // Group by product_name instead of product_id
-        $wellUsagesGrouped = $wellUsages->groupBy('product_name');
-        Log::info("Well Usages Grouped by Product Name: " . json_encode($wellUsagesGrouped->keys()));
-
-        // Prepare data for the chart
-        $productData = $wellUsagesGrouped->map(function ($wellUsageGroup, $productName) {
-            Log::info("Product Name: {$productName}");
-
-            // Sum up the monthly cost for the WellUsages grouped by product_name
-            $totalCost = $wellUsageGroup->sum('monthly_cost');
-            Log::info("Total Cost for Product Name {$productName}: {$totalCost}");
-
-            return [
+        // Group by product_name and sum the monthly cost for each product
+        $productData = $wellUsages->groupBy('product_name')
+            ->map(fn($group, $productName) => [
                 'productName' => $productName,
-                'totalCost' => $totalCost,
-            ];
-        });
+                'totalCost' => $group->sum('monthly_cost'),
+            ])
+            ->filter(fn($data) => $data['totalCost'] > 0); // Filter out products with no cost
 
-        // Filter out products with zero cost
-        $filteredData = $productData->filter(fn($data) => $data['totalCost'] > 0);
-        Log::info("Filtered Product Data: " . json_encode($filteredData->toArray()));
+        // Prepare the labels (product names) and the data (total costs)
+        $labels = $productData->pluck('productName')->toArray();
+        $costData = $productData->pluck('totalCost')->toArray();
+
+        // Generate random colors for each product
+        $backgroundColor = $productData->keys()
+            ->map(fn($key, $index) => $this->generateRandomColor($index))
+            ->toArray();
 
         return [
             'datasets' => [
                 [
                     'label' => 'Monthly Costs',
-                    'backgroundColor' => ['#FF6384', '#36A2EB', '#FFCE56'], // Modify as needed
-                    'data' => $filteredData->pluck('totalCost'),
+                    'backgroundColor' => $backgroundColor, 
+                    'data' => $costData,
+                    // Add hoverOffset for better user experience
+                    'hoverOffset' => 4,
+                    // Add borderWidth for better visibility
+                    'borderWidth' => 1,
+                    // Add borderColor to match background color
+                    'borderColor' => $backgroundColor,
                 ],
             ],
-            'labels' => $filteredData->pluck('productName'),
+            'labels' => $labels,
         ];
+    }
+
+    /**
+     * Helper function to generate random colors with predictable brightness.
+     * This ensures the colors are not too dark or too light.
+     *
+     * @param int $index The index of the color to generate.
+     * @return string The generated color in HSL format.
+     */
+    private function generateRandomColor(int $index): string
+    {
+        $hue = ($index * 137.508) % 360; // Use golden angle approximation for even distribution
+        $saturation = 70; // Keep saturation relatively high
+        $lightness = 50; // Keep lightness in the middle range
+        return "hsl({$hue}, {$saturation}%, {$lightness}%)";
     }
 
     protected function getType(): string
     {
-        return 'pie';
+        return 'pie'; // Set chart type to pie
     }
 }

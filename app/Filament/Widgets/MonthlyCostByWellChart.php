@@ -19,13 +19,9 @@ class MonthlyCostByWellChart extends ChartWidget
     protected function getData(): array
     {
         // Access filters from the dashboard
-        $reportMonth = $this->filters['report_month'] ?? now()->format('Y-m');
+        $reportMonth = $this->filters['report_month'] ?? null; // No date range filter if month is not selected
         $dashboardState = $this->filters['Dashboard'] ?? 'site';
         $selectedSiteIds = $this->filters['site_id'] ?? [];
-
-        // Parse the selected month to determine the start and end date
-        $startDate = Carbon::parse($reportMonth)->startOfMonth();
-        $endDate = Carbon::parse($reportMonth)->endOfMonth();
 
         // Get the current tenant
         $tenant = Filament::getTenant();
@@ -40,21 +36,30 @@ class MonthlyCostByWellChart extends ChartWidget
             $query->whereIn('site_id', $selectedSiteIds);
         }
 
-        // Load well usages for the selected month
-        $wells = $query->with(['wellUsages' => function ($query) use ($startDate, $endDate) {
-            $query->whereBetween('created_at', [$startDate, $endDate]);
-        }])->get();
+        // If a month is selected, apply the date range filter
+        if ($reportMonth) {
+            $startDate = Carbon::parse($reportMonth)->startOfMonth();
+            $endDate = Carbon::parse($reportMonth)->endOfMonth();
 
-     // Prepare data for the chart
-$wellData = $wells->map(function (Well $well) {
-    $totalCost = $well->wellUsages->sum('monthly_cost');
+            // Load well usages for the selected month
+            $wells = $query->with(['wellUsages' => function ($query) use ($startDate, $endDate) {
+                $query->whereBetween('created_at', [$startDate, $endDate]);
+            }])->get();
+        } else {
+            // Load well usages for all time if no month is selected
+            $wells = $query->with('wellUsages')->get();
+        }
 
-    return [
-        'wellName' => $well->lease ?? "Well #{$well->id}", // Replaced 'name' with 'lease'
-        'totalCost' => $totalCost,
-    ];
-});
+        // Prepare data for the chart
+        $wellData = $wells->map(function (Well $well) {
+            // Calculate total cost by summing up 'monthly_cost' from 'wellUsages'
+            $totalCost = $well->wellUsages->sum('monthly_cost');
 
+            return [
+                'wellName' => $well->lease ?? "Well #{$well->id}", // Fallback to Well ID if 'lease' is null
+                'totalCost' => $totalCost, // Store the total cost
+            ];
+        });
 
         // Filter out wells with zero cost
         $filteredData = $wellData->filter(fn($data) => $data['totalCost'] > 0);
@@ -74,22 +79,15 @@ $wellData = $wells->map(function (Well $well) {
                         'label' => function ($tooltipItem, $data) {
                             $value = $data['datasets'][0]['data'][$tooltipItem['index']];
                             return '$' . number_format($value, 2); // Ensure dollar sign appears
-    
                         },
                     ],
                 ],
             ],
         ];
-
-
-        
     }
 
     protected function getType(): string
     {
-        return 'pie';
+        return 'pie'; // Set chart type to pie
     }
-
-
-    
 }

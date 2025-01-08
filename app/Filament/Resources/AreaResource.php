@@ -72,53 +72,25 @@ class AreaResource extends Resource
                 TextColumn::make('monthly_cost_by_area')
                     ->label('Monthly Cost by Area')
                     ->formatStateUsing(function ($record) {
-                        $reportMonth = null;
-                        if (request()->has('components') && isset(request()->get('components')[0]['updates']['tableFilters.month_selector.report_month'])) {
-                            $reportMonth = request()->get('components')[0]['updates']['tableFilters.month_selector.report_month'];
-                        }else{
-                            $reportMonth = request()->input('tableFilters.month_selector.report_month', now()->format('Y-m'));
-                        }
-
-                        return $record->monthlyCost($record->id, $reportMonth);
+                        return $record->monthlyCost($record->id, self::getReportMonth());
                     })
                     ->default('0'),
                 TextColumn::make('Bowg_by_area')
-                    ->label('BOWG by Area')
+                    ->label('$BO by Area')
                     ->formatStateUsing(function ($record) {
-                        $reportMonth = null;
-                        if (request()->has('components') && isset(request()->get('components')[0]['updates']['tableFilters.month_selector.report_month'])) {
-                            $reportMonth = request()->get('components')[0]['updates']['tableFilters.month_selector.report_month'];
-                        }else{
-                            $reportMonth = request()->input('tableFilters.month_selector.report_month', now()->format('Y-m'));
-                        }
-
-                        return $record->BOWG($record->id, $reportMonth);
+                        return $record->BOWG($record->id, self::getReportMonth());
                     })
                     ->default('0'),
-                TextColumn::make('BWE by Area')
+                TextColumn::make('$BW by Area')
                     ->label('BWE by Area')
                     ->formatStateUsing(function ($record) {
-                        $reportMonth = null;
-                        if (request()->has('components') && isset(request()->get('components')[0]['updates']['tableFilters.month_selector.report_month'])) {
-                            $reportMonth = request()->get('components')[0]['updates']['tableFilters.month_selector.report_month'];
-                        }else{
-                            $reportMonth = request()->input('tableFilters.month_selector.report_month', now()->format('Y-m'));
-                        }
-
-                        return $record->BWE($record->id, $reportMonth);
+                        return $record->BWE($record->id, self::getReportMonth());
                     })
                     ->default('0'),
                 // TextColumn::make('BWPD by Area')
                 //     ->label('BWPD by Area')
                 //     ->formatStateUsing(function ($record) {
-                //         $reportMonth = null;
-                //         if (request()->has('components') && isset(request()->get('components')[0]['updates']['tableFilters.month_selector.report_month'])) {
-                //             $reportMonth = request()->get('components')[0]['updates']['tableFilters.month_selector.report_month'];
-                //         }else{
-                //             $reportMonth = request()->input('tableFilters.month_selector.report_month', now()->format('Y-m'));
-                //         }
-
-                //         return $record->bwpd($record->id, $reportMonth);
+                //         return $record->BWPD($record->id, self::getReportMonth());
                 //     })
                 //     ->default('0'),
                 Tables\Columns\IconColumn::make('is_published')
@@ -243,4 +215,15 @@ class AreaResource extends Resource
         // Other users do not have any access
         return false;
     }
+
+    private static function getReportMonth(): ?string
+    {
+        if (request()->has('components') && isset(request()->get('components')[0]['updates']['tableFilters.month_selector.report_month'])) {
+            return request()->get('components')[0]['updates']['tableFilters.month_selector.report_month'];
+        }
+
+        return request()->input('tableFilters.month_selector.report_month', now()->format('Y-m'));
+    }
+
+
 }

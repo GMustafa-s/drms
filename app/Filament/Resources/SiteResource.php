@@ -133,7 +133,7 @@ class SiteResource extends Resource
                     ->default('0'),
 
                 TextColumn::make('BWE_by_site')
-                    ->label('BWE by Site')
+                    ->label('$BW by Site')
                     ->formatStateUsing(function ($record) {
                         $reportMonth = null;
                         if (request()->has('components') && isset(request()->get('components')[0]['updates']['tableFilters.month_selector.report_month'])) {
@@ -147,7 +147,7 @@ class SiteResource extends Resource
                     ->default('0'),
 
                 TextColumn::make('BOWG_by_site')
-                    ->label('BOWG by Site')
+                    ->label('$BO by Site')
                     ->formatStateUsing(function ($record) {
                         $reportMonth = null;
                         if (request()->has('components') && isset(request()->get('components')[0]['updates']['tableFilters.month_selector.report_month'])) {

@@ -5,6 +5,8 @@ namespace App\Filament\Widgets;
 use Filament\Facades\Filament;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
+use App\Models\Site;
+use App\Models\Well;
 
 class User extends BaseWidget
 {
@@ -23,27 +25,42 @@ class User extends BaseWidget
         // If the user has the "Super Admin" role, use Company count; otherwise, use Area count
         $count = $user->hasRole('Super Admin') ? $companyCount : $areaCount;
 
+        // Get data for charts
+        $siteCounts = Site::where('company_id', $tenant->id)
+            ->selectRaw('DATE(created_at) as date, COUNT(*) as count')
+            ->groupBy('date')
+            ->orderBy('date', 'asc')
+            ->pluck('count', 'date')
+            ->toArray();
+
+        $wellCounts = Well::where('company_id', $tenant->id)
+            ->selectRaw('DATE(created_at) as date, COUNT(*) as count')
+            ->groupBy('date')
+            ->orderBy('date', 'asc')
+            ->pluck('count', 'date')
+            ->toArray();
+
         return [
             Stat::make('user', $count)
                 ->label($user->hasRole('Super Admin') ? 'Total Companies' : 'Total Areas')
                 ->description($user->hasRole('Super Admin') ? 'Total Companies Onboarded' : 'Total Areas Covered')
-                ->chart([4, 2, 7, 4, 1, 3, 7, 1, 2, 10])
+                ->chart(array_values($siteCounts)) // Use site data for the first chart
                 ->DescriptionIcon('heroicon-o-user-group')
                 // ->url('/admin/users')
                 ->color('success'),
 
             Stat::make('Sites', \App\Models\Site::where('company_id', $tenant->id)->count())
                 ->label('Sites')
-                ->description('Total Sites Covered')
-                ->chart([4, 2, 7, 4, 1, 3, 7, 1, 2, 10])
+                ->description('Total Sites Registered') 
+                ->chart(array_values($siteCounts)) // Use site data for this chart
                 ->DescriptionIcon('heroicon-o-user-group')
                 // ->url('/admin/sites')
                 ->color('danger'),
 
             Stat::make('Wells', \App\Models\Well::where('company_id', $tenant->id)->count())
                 ->label('Wells')
-                ->description('Total Wells running')
-                ->chart([4, 2, 7, 4, 1, 3, 7, 1, 2, 10])
+                ->description('Total Wells Registered')
+                ->chart(array_values($wellCounts)) // Use well data for this chart
                 ->DescriptionIcon('heroicon-o-user-group')
                 // ->url('/admin/wells')
                 ->color('primary'),
