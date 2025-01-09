@@ -82,7 +82,7 @@ class AreaResource extends Resource
                     })
                     ->default('0'),
                 TextColumn::make('$BW by Area')
-                    ->label('BWE by Area')
+                    ->label('BW by Area')
                     ->formatStateUsing(function ($record) {
                         return $record->BWE($record->id, self::getReportMonth());
                     })

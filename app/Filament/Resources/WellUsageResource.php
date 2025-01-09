@@ -35,6 +35,7 @@ use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Support\Arr;
 use PhpOffice\PhpSpreadsheet\Calculation\MathTrig\Sum;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportAction;
+use Illuminate\Support\Facades\Log;
 
 class WellUsageResource extends Resource
 {
@@ -204,121 +205,7 @@ class WellUsageResource extends Resource
                 ]),
             ]);
 
-        //        return $form
-        //            ->schema([
-        //
-        //
-        //                Forms\Components\Group::make()->schema([
-        //                    Section::make('Data')->schema([
-        //                        Grid::make(3)->schema([
-        //
-        //                            TextInput::make('ppm')
-        //                                ->label('PPM')
-        //                                ->numeric()
-        //                                ->reactive() // React to changes in PPM
-        //                                ->afterStateUpdated(fn (callable $get, callable $set) => static::calculateAllFields($get, $set)),
-        //                            Forms\Components\TextInput::make('quarts_per_day')
-        //                                ->label('Quarts per Day')
-        //                                ->reactive()
-        //                                ->afterStateUpdated(fn (callable $get, callable $set) => static::calculateAllFields($get, $set))
-        //                                ->required()
-        //                                ->numeric()
-        //                                ->required(),
-        //                            Forms\Components\TextInput::make('gallons_per_day')
-        //                                ->label('Gallons per Day')
-        //                                ->numeric()
-        //                                ->reactive()
-        //                                ->afterStateUpdated(fn (callable $get, callable $set) => static::calculateAllFields($get, $set))
-        //                                ->required()
-        //                                ->required(),
-        //                            Forms\Components\TextInput::make('gallons_per_month')
-        //                                ->label('Gallons per Month')
-        //                                ->reactive()
-        //                                ->afterStateUpdated(fn (callable $get, callable $set) => static::calculateAllFields($get, $set))
-        //                                ->required()
-        //                                ->required()
-        //                                ->numeric(),
-        //                            Forms\Components\TextInput::make('program')
-        //                                ->label('Program')
-        //                                ->required()
-        //                                ->maxLength(255),
-        //                            Forms\Components\TextInput::make('delivery_per_gallon')
-        //                                ->label('Delivery per Gallon')
-        //                                ->required()
-        //                                ->numeric()
-        //                                ->reactive()
-        //                                ->afterStateUpdated(fn (callable $get, callable $set) => static::calculateAllFields($get, $set))
-        //                                ->required(),
-        //                            Forms\Components\TextInput::make('ppg')
-        //                                ->label('PPG')
-        //                                ->numeric()
-        //                                ->reactive()
-        //                                ->afterStateUpdated(fn (callable $get, callable $set) => static::calculateAllFields($get, $set))
-        //                                ->required(),
-        //                            Forms\Components\TextInput::make('monthly_cost')
-        //                                ->label('Monthly cost')
-        //                                ->numeric()
-        //                                ->required()->reactive()
-        //                                ->afterStateUpdated(fn (callable $get, callable $set) => static::calculateAllFields($get, $set))
-        //                                ->required(),
-        //                            Forms\Components\TextInput::make('bwe')
-        //                                ->label('BWE')
-        //                                ->numeric()
-        //                                ->reactive()
-        //                                ->afterStateUpdated(fn (callable $get, callable $set) => static::calculateAllFields($get, $set))
-        //                                ->required(),
-        //                            Forms\Components\TextInput::make('bwpd')
-        //                                ->label('bwpd')
-        //                                ->numeric()
-        //                                ->reactive() // React to changes in bwpd
-        //                                ->afterStateUpdated(fn (callable $get, callable $set) => static::calculateAllFields($get, $set))
-        //                                ->required(),
-        //                            Forms\Components\TextInput::make('bopd')
-        //                                ->label('Bopd')
-        //                                ->numeric()
-        //                                ->required()->reactive()
-        //                                ->afterStateUpdated(fn (callable $get, callable $set) => static::calculateAllFields($get, $set))
-        //                                ->required(),
-        //                        ])
-        //
-        //                    ])
-        //                ]),
-        //                Forms\Components\Group::make()->schema([
-        //                    Section::make('Details')->schema([
-        //                        Grid::make(2)->schema([
-        //
-        //                            Forms\Components\Select::make('well_id')
-        //                                ->preload()
-        //                                ->relationship('well', 'lease')
-        //                                ->reactive()
-        //                                ->afterStateUpdated(fn (callable $get, callable $set) => static::populatePpmFromWell($get, $set))
-        //                            ->searchable(),
-        //                            Forms\Components\TextInput::make('product_name')
-        //                                ->datalist([
-        //                                    'BWM',
-        //                                    'Ford',
-        //                                    'Mercedes-Benz',
-        //                                    'Porsche',
-        //                                    'Toyota',
-        //                                    'Tesla',
-        //                                    'Volkswagen',
-        //                                ])
-        //                                ->required()
-        //                                ->maxLength(255),
-        //                            Forms\Components\TextInput::make('product_type')
-        //                                ->required()
-        //                                ->maxLength(255),
-        //                            Forms\Components\TextInput::make('injection_location')
-        //                                ->required()
-        //                                ->maxLength(255),
-        //
-        //                            Forms\Components\Toggle::make('is_published')
-        //                                ->required(),
-        //                        ])
-        //
-        //                    ])
-        //                ]),
-        //            ]);333
+       
     }
 
     public static function table(Table $table): Table
@@ -495,7 +382,6 @@ class WellUsageResource extends Resource
                     ->sortable(),
             ])
             ->filters([
-
                 Tables\Filters\SelectFilter::make('well_id')
                     ->label('Select Well')
                     ->searchable()
@@ -515,49 +401,50 @@ class WellUsageResource extends Resource
                     ->options(function () {
                         // Get the current tenant using Filament's getTenant method
                         $tenant = Filament::getTenant();
-
+            
                         // Fetch the sites related to the current tenant
-                        return Site::where('company_id', $tenant->id) // Assuming 'company_id' is the field to match the tenant
-                            ->pluck('location', 'id') // Pluck the location (or whatever field is needed)
+                        return Site::where('company_id', $tenant->id)
+                            ->pluck('location', 'id')
                             ->toArray();
                     })
                     ->query(function ($query, $filter) {
-                        $siteIds = $filter->getState(); // Get the selected site IDs
-
-                        // If no sites are selected, return all records
-                        if (empty($siteIds) || (isset($siteIds['values']) && empty($siteIds['values']))) {
-                            return $query; // Don't apply any filter, show all records
+                        $siteIds = $filter->getState();
+            
+                        // Only apply the filter if values are selected
+                        if (!empty($siteIds) && (!isset($siteIds['values']) || !empty($siteIds['values']))) {
+                            $siteIds = Arr::flatten($siteIds);
+                            return $query->whereHas('well', function ($query) use ($siteIds) {
+                                $query->whereIn('site_id', $siteIds);
+                            });
                         }
-
-                        // Flatten the array in case it contains nested arrays
-                        $siteIds = Arr::flatten($siteIds);
-
-                        // Apply the filter to WellUsage, filtering by site_id
-                        return $query->whereHas('well', function ($query) use ($siteIds) {
-                            // Make sure that the Well belongs to the selected Site(s)
-                            $query->whereIn('site_id', $siteIds); // Filter Well by site_id
-                        });
+            
+                        // Show all records if no filter is selected
+                        return $query;
                     }),
-                Filter::make('created_at')
-                    ->default(now())
+                    Filter::make('created_at')
                     ->form([
-                        Flatpickr::make('month')->monthSelect()->animate(),
-                        //                        DatePicker::make('created_from')
-                        //                            ->native(false),
-                        //                        DatePicker::make('created_until')->native(false),
+                        Flatpickr::make('month')
+                            ->monthSelect()
+                            ->animate()
+                            ->default(null), // Ensure no default value
                     ])
                     ->query(function (Builder $query, array $data): Builder {
-                        // Get the selected month or use the current month as default
-                        $selectedMonth = $data['month'] ?? now()->format('Y-m');
-
-                        // Determine the start and end dates of the selected month
-                        $startDate = Carbon::parse($selectedMonth)->startOfMonth();
-                        $endDate = Carbon::parse($selectedMonth)->endOfMonth();
-
-                        // Apply the date filter
-                        return $query->whereBetween('created_at', [$startDate, $endDate]);
+                        if (isset($data['month'])) {
+                            $selectedMonth = $data['month'];
+                            $startDate = Carbon::parse($selectedMonth)->startOfMonth();
+                            $endDate = Carbon::parse($selectedMonth)->endOfMonth();
+                    
+                            // \Log::info('Applying month filter', ['month' => $data['month']]);
+                    
+                            return $query->whereBetween('created_at', [$startDate, $endDate]);
+                        }
+                    
+                        // \Log::info('No filter applied');
+                        return $query; // Show all records if no filter is selected
                     })
-            ], layout: FiltersLayout::AboveContent)
+                    
+                ], layout: FiltersLayout::AboveContent)
+            
             ->actions([
                 //                Action::make('duplicate')
                 //                    ->label('Duplicate')

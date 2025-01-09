@@ -96,17 +96,20 @@ class Site extends Model
     
     public function bwpd(int $id, ?string $filter): string
     {
-       return $this->calculateMetric($id, $filter, 'bwpd');
+        $value = $this->calculateMetric($id, $filter, 'bwpd');
+        return '$ ' . number_format($value, 2);
     }
     
     public function BWE(int $id, ?string $filter): string
     {
-        return $this->calculateMetric($id, $filter, 'BWE');
+        $value = $this->calculateMetric($id, $filter, 'BWE');
+        return '$ ' . number_format($value, 2);
     }
     
     public function BOWG(int $id, ?string $filter): string
     {
-        return $this->calculateMetric($id, $filter, 'BOWG');
+        $value = $this->calculateMetric($id, $filter, 'BOWG');
+        return '$ ' . number_format($value, 2);
          
     }
     
