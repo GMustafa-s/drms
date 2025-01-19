@@ -2,12 +2,12 @@
 
 namespace App\Models;
 
+use Filament\Notifications\Notification;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class WellUsage extends Model
 {
-
     // Chemical Injection Points Section
     protected $fillable = [
         'company_id',
@@ -34,11 +34,58 @@ class WellUsage extends Model
         'created_at'
     ];
 
+    protected $casts = [
+        'is_published' => 'boolean',
+        'ppm' => 'float',
+        'quarts_per_day' => 'float',
+        'gallons_per_day' => 'float',
+        'gallons_per_month' => 'float',
+        'deliveries_gallons' => 'float',
+        'ppg' => 'float',
+        'monthly_cost' => 'float',
+        'bwe' => 'float',
+        'bowg' => 'float',
+        'bopd' => 'float',
+        'mmcf' => 'float',
+        'bwpd' => 'float',
+    ];
 
-    public function Well(): belongsTo
+    protected static function booted()
+    {
+        static::created(function ($usage) {
+            try {
+                $well = $usage->well;
+                Notification::make('usage_created')
+                    ->title('Well Usage Added')
+                    ->body("New usage data added for Well {$well->lease}")
+                    ->success()
+                    ->send();
+            } catch (\Exception $e) {
+                report($e);
+            }
+        });
+
+        static::updated(function ($usage) {
+            try {
+                if ($usage->wasChanged(['monthly_cost', 'bwe', 'bowg'])) {
+                    $well = $usage->well;
+                    Notification::make('usage_updated')
+                        ->title('Well Usage Updated')
+                        ->body("Usage metrics updated for Well {$well->lease}")
+                        ->info()
+                        ->send();
+                }
+            } catch (\Exception $e) {
+                report($e);
+            }
+        });
+    }
+
+    public function well(): BelongsTo
     {
         return $this->belongsTo(Well::class);
     }
+
     public function company(): BelongsTo
     {
         return $this->belongsTo(Company::class);

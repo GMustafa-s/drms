@@ -1,13 +1,14 @@
 <?php
 
-namespace App\Filament\Resources\FeMnCountResource\Pages;
+namespace App\Filament\Resources\GasAnalysisResource\Pages;
 
 use App\Filament\Resources\FeMnCountResource;
+use App\Filament\Resources\GasAnalysisResource;
 use Filament\Resources\Pages\CreateRecord;
 
-class CreateFeMnCount extends CreateRecord
+class CreateGasAnalysis extends CreateRecord
 {
-    protected static string $resource = FeMnCountResource::class;
+    protected static string $resource = GasAnalysisResource::class;
 
     protected function getRedirectUrl(): string
     {

@@ -3,18 +3,74 @@
 namespace App\Models;
 use Carbon\Carbon;
 use Filament\Facades\Filament;
+use Filament\Notifications\Notification;
+use App\Traits\NotifiesAdmins;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Area extends Model
 {
+    use NotifiesAdmins;
+
     protected $fillable = [
         'name',
         'company_id',
         'description',
         'is_published'
     ];
+
+    protected $casts = [
+        'is_published' => 'boolean'
+    ];
+
+    protected static function booted()
+    {
+        static::created(function ($area) {
+            try {
+                Notification::make('area_created')
+                    ->title('Area Created')
+                    ->body("Area '{$area->name}' has been created")
+                    ->success()
+                    ->send();
+            } catch (\Exception $e) {
+                report($e);
+            }
+        });
+
+        static::updated(function ($area) {
+            try {
+                if ($area->wasChanged('is_published')) {
+                    $status = $area->is_published ? 'published' : 'unpublished';
+                    Notification::make('area_status')
+                        ->title('Area Status Changed')
+                        ->body("Area '{$area->name}' has been {$status}")
+                        ->warning()
+                        ->send();
+                } elseif ($area->wasChanged('name')) {
+                    Notification::make('area_renamed')
+                        ->title('Area Renamed')
+                        ->body("Area has been renamed to '{$area->name}'")
+                        ->info()
+                        ->send();
+                }
+            } catch (\Exception $e) {
+                report($e);
+            }
+        });
+
+        static::deleted(function ($area) {
+            try {
+                Notification::make('area_deleted')
+                    ->title('Area Deleted')
+                    ->body("Area '{$area->name}' has been removed")
+                    ->danger()
+                    ->send();
+            } catch (\Exception $e) {
+                report($e);
+            }
+        });
+    }
 
     public function sites(): HasMany
     {
@@ -86,7 +142,7 @@ class Area extends Model
     public function Bwpd(int $areaId, ?string $filter): string
     {
         $value = $this->calculateMetric($areaId, $filter, 'bwpd');
-        return '$' . number_format($value, 2);
+        return number_format($value, 2);
     }
     
     public function BWE(int $areaId, ?string $filter): string

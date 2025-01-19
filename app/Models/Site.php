@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Carbon\Carbon;
 use Filament\Facades\Filament;
+use Filament\Notifications\Notification;
 use Filament\Widgets\Concerns\InteractsWithPageFilters;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -21,6 +22,66 @@ class Site extends Model
         'company_id',
         'is_published'
     ];
+
+    protected $casts = [
+        'is_published' => 'boolean'
+    ];
+
+    protected static function booted()
+    {
+        static::created(function ($site) {
+            try {
+                $area = $site->area;
+                Notification::make('site_created')
+                    ->title('Site Created')
+                    ->body("New site '{$site->location}' created in area '{$area->name}'")
+                    ->success()
+                    ->send();
+            } catch (\Exception $e) {
+                report($e);
+            }
+        });
+
+        static::updated(function ($site) {
+            try {
+                if ($site->wasChanged('is_published')) {
+                    $status = $site->is_published ? 'published' : 'unpublished';
+                    Notification::make('site_status')
+                        ->title('Site Status Changed')
+                        ->body("Site '{$site->location}' has been {$status}")
+                        ->warning()
+                        ->send();
+                } elseif ($site->wasChanged('location')) {
+                    Notification::make('site_location')
+                        ->title('Site Location Updated')
+                        ->body("Site location has been updated to '{$site->location}'")
+                        ->info()
+                        ->send();
+                } elseif ($site->wasChanged('area_id')) {
+                    $area = $site->area;
+                    Notification::make('site_moved')
+                        ->title('Site Moved')
+                        ->body("Site '{$site->location}' has been moved to area '{$area->name}'")
+                        ->info()
+                        ->send();
+                }
+            } catch (\Exception $e) {
+                report($e);
+            }
+        });
+
+        static::deleted(function ($site) {
+            try {
+                Notification::make('site_deleted')
+                    ->title('Site Deleted')
+                    ->body("Site '{$site->location}' has been removed")
+                    ->danger()
+                    ->send();
+            } catch (\Exception $e) {
+                report($e);
+            }
+        });
+    }
 
     public function area(): BelongsTo
     {

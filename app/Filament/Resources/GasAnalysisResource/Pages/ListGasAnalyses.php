@@ -1,14 +1,15 @@
 <?php
 
-namespace App\Filament\Resources\FeMnCountResource\Pages;
+namespace App\Filament\Resources\GasAnalysisResource\Pages;
 
 use App\Filament\Resources\FeMnCountResource;
+use App\Filament\Resources\GasAnalysisResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
 
-class ListFeMnCounts extends ListRecords
+class ListGasAnalyses extends ListRecords
 {
-    protected static string $resource = FeMnCountResource::class;
+    protected static string $resource = GasAnalysisResource::class;
 
     protected function getHeaderActions(): array
     {

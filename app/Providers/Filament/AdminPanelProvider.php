@@ -8,6 +8,7 @@ use App\Filament\Widgets\MonthlyCostByWell;
 use App\Filament\Widgets\MonthSelector;
 use App\Models\Company;
 use CharrafiMed\GlobalSearchModal\GlobalSearchModalPlugin;
+use Devonab\FilamentEasyFooter\EasyFooterPlugin;
 use EightyNine\Reports\ReportsPlugin;
 use Exception;
 use Filament\Facades\Filament;
@@ -32,6 +33,13 @@ use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 use Joaopaulolndev\FilamentEditProfile\FilamentEditProfilePlugin;
 use Joaopaulolndev\FilamentGeneralSettings\FilamentGeneralSettingsPlugin;
+use Leandrocfe\FilamentApexCharts\FilamentApexChartsPlugin;
+use OwenIt\Auditing\AuditingPlugin;
+use Pxlrbt\FilamentExcel\ExcelPlugin;
+use Awcodes\FilamentVersions\VersionsPlugin;
+use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
+use Njxqlus\FilamentProgressbar\FilamentProgressbarPlugin;
+use Filament\Notifications\Notification;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -46,7 +54,6 @@ class AdminPanelProvider extends PanelProvider
             ->path('/')
             ->spa()
             ->login()
-            ->sidebarCollapsibleOnDesktop()
             ->colors([
                 'primary' => Color::Amber,
             ])
@@ -55,7 +62,7 @@ class AdminPanelProvider extends PanelProvider
             ->pages([])
 
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
-           
+
             ->middleware([
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,
@@ -70,25 +77,31 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->plugins([
                 FilamentEditProfilePlugin::make()
-                    ->setSort(8)
-                    ->setIcon('heroicon-o-user')
-                    ->setNavigationGroup('Settings')
-                    ->setTitle('Edit Profile')
-                    ->setNavigationLabel('Edit Profile'),
-                FilamentGeneralSettingsPlugin::make()
-                    ->canAccess(fn() => auth()->user()->hasRole('Super Admin'))
-                    ->setSort(8)
-                    ->setIcon('heroicon-o-cog')
-                    ->setNavigationGroup('Settings')
-                    ->setTitle('General Settings')
-                    ->setNavigationLabel('General Settings'),
+                ->setSort(8)
+                ->setIcon('heroicon-o-user')
+                ->setNavigationGroup('Settings')
+                ->setTitle('Edit Profile')
+                ->setNavigationLabel('Edit Profile'),
+            FilamentGeneralSettingsPlugin::make()
+                ->canAccess(fn() => auth()->user()->hasRole('Super Admin'))
+                ->setSort(8)
+                ->setIcon('heroicon-o-cog')
+                ->setNavigationGroup('Settings')
+                ->setTitle('General Settings')
+                ->setNavigationLabel('General Settings'),
                 FilamentRecordSwitcherPlugin::make(),
                 ReportsPlugin::make(),
                 ThemesPlugin::make()->canViewThemesPage(fn() => auth()->user()->hasRole('Super Admin')),
-                GlobalSearchModalPlugin::make()->associateItemsWithTheirGroups()
-
+                GlobalSearchModalPlugin::make()->associateItemsWithTheirGroups(),
+                EasyFooterPlugin::make()
+                ->withFooterPosition('sidebar'),
+                FilamentApexChartsPlugin::make()
             ])
-
+            ->databaseNotifications()
+            ->databaseNotificationsPolling('30s')
+            ->globalSearch()
+            ->breadcrumbs()
+            ->maxContentWidth('full')
             ->tenant(Company::class, slugAttribute: 'slug', ownershipRelationship: 'company')
             ->tenantRegistration(RegisterCompany::class)
             ->tenantProfile(EditCompanyProfile::class)
@@ -109,6 +122,7 @@ class AdminPanelProvider extends PanelProvider
             ->viteTheme('resources/css/filament/admin/theme.css')
             ->authMiddleware([
                 Authenticate::class,
-            ]);
+            ])
+            ->sidebarCollapsibleOnDesktop();
     }
 }

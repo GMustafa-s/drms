@@ -1,15 +1,16 @@
 <?php
 
-namespace App\Filament\Resources\GasAnalysisResource\Pages;
+namespace App\Filament\Resources\OilAnalysisResource\Pages;
 
 use App\Filament\Resources\FeMnCountResource;
 use App\Filament\Resources\GasAnalysisResource;
+use App\Filament\Resources\OilAnalysisResource;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
 
-class EditGasAnalysis extends EditRecord
+class EditOilAnalysis extends EditRecord
 {
-    protected static string $resource = GasAnalysisResource::class;
+    protected static string $resource = OilAnalysisResource::class;
 
     protected function getHeaderActions(): array
     {

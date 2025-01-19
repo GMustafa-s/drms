@@ -5,10 +5,11 @@ namespace App\Filament\Widgets;
 use App\Models\Well;
 use Carbon\Carbon;
 use Filament\Facades\Filament;
-use Filament\Widgets\ChartWidget;
+use Filament\Support\RawJs;
+use Leandrocfe\FilamentApexCharts\Widgets\ApexChartWidget;
 use Filament\Widgets\Concerns\InteractsWithPageFilters;
 
-class MonthlyCostByWellChart extends ChartWidget
+class MonthlyCostByWellChart extends ApexChartWidget
 {
     use InteractsWithPageFilters;
 
@@ -16,7 +17,12 @@ class MonthlyCostByWellChart extends ChartWidget
 
     protected static ?int $sort = 2;
 
-    protected function getData(): array
+    protected function getType(): string
+    {
+        return 'pie';
+    }
+
+    protected function getOptions(): array
     {
         // Access filters from the dashboard
         $reportMonth = $this->filters['report_month'] ?? null; // No date range filter if month is not selected
@@ -65,29 +71,35 @@ class MonthlyCostByWellChart extends ChartWidget
         $filteredData = $wellData->filter(fn($data) => $data['totalCost'] > 0);
 
         return [
-            'datasets' => [
-                [
-                    'label' => 'Monthly Costs',
-                    'backgroundColor' => ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40'],
-                    'data' => $filteredData->pluck('totalCost'),
-                ],
+            'chart' => [
+                'type' => 'pie',
+                'height' => 450,
             ],
-            'labels' => $filteredData->pluck('wellName'),
-            'options' => [
-                'tooltips' => [
-                    'callbacks' => [
-                        'label' => function ($tooltipItem, $data) {
-                            $value = $data['datasets'][0]['data'][$tooltipItem['index']];
-                            return '$' . number_format($value, 2); // Ensure dollar sign appears
-                        },
-                    ],
-                ],
+            'series' => $filteredData->pluck('totalCost')->toArray(),
+            'labels' => $filteredData->pluck('wellName')->toArray(),
+            'colors' => ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40'],
+            'legend' => [
+                'position' => 'bottom',
             ],
         ];
     }
 
-    protected function getType(): string
+    protected function extraJsOptions(): ?\Filament\Support\RawJs
     {
-        return 'pie'; // Set chart type to pie
+        return RawJs::make(<<<'JS'
+    {
+
+        yaxis: {
+            labels: {
+                formatter: function (val, index) {
+                    return '$' + val
+                }
+            }
+        }
+
+
+
+    }
+    JS);
     }
 }

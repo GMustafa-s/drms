@@ -1,14 +1,15 @@
 <?php
 
-namespace App\Filament\Resources\GasAnalysisResource\Pages;
+namespace App\Filament\Resources\OilAnalysisResource\Pages;
 
 use App\Filament\Resources\FeMnCountResource;
 use App\Filament\Resources\GasAnalysisResource;
+use App\Filament\Resources\OilAnalysisResource;
 use Filament\Resources\Pages\CreateRecord;
 
-class CreateGasAnalysis extends CreateRecord
+class CreateOilAnalysis extends CreateRecord
 {
-    protected static string $resource = GasAnalysisResource::class;
+    protected static string $resource = OilAnalysisResource::class;
 
     protected function getRedirectUrl(): string
     {

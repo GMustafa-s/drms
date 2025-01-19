@@ -16,4 +16,11 @@ class ListSites extends ListRecords
             Actions\CreateAction::make(),
         ];
     }
+
+    protected function getFooterWidgets(): array
+    {
+        return [
+            SiteResource\Widgets\Sites::class
+        ];
+    }
 }

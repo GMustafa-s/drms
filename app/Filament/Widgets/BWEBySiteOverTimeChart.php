@@ -5,20 +5,21 @@ namespace App\Filament\Widgets;
 use App\Models\Site;
 use Carbon\Carbon;
 use Filament\Facades\Filament;
-use Filament\Widgets\ChartWidget;
+use Filament\Support\RawJs;
 use Filament\Widgets\Concerns\InteractsWithPageFilters;
+use Leandrocfe\FilamentApexCharts\Widgets\ApexChartWidget;
 
-class BWEBySiteOverTimeChart extends ChartWidget
+class BWEBySiteOverTimeChart extends ApexChartWidget
 {
     use InteractsWithPageFilters;
 
     protected static ?string $heading = '$BW by Site Over Time';
-    
+
     // protected int | string | array $columnSpan = 'full';
 
     protected static ?int $sort = 1;
 
-    protected function getData(): array
+    protected function getOptions(): array
     {
         // Extract filters
         $selectedMonth = $this->filters['report_month'] ?? null;
@@ -38,7 +39,7 @@ class BWEBySiteOverTimeChart extends ChartWidget
 
         // Query sites for the current tenant
         $query = Site::where('company_id', $tenant->id);
-        
+
         // If a site is selected, filter by the selected site
         if ($selectedSite) {
             $query->where('id', $selectedSite);
@@ -56,36 +57,67 @@ class BWEBySiteOverTimeChart extends ChartWidget
         }
 
         // Prepare data for the chart
-        $datasets = $sites->map(function (Site $site) use ($months) {
+        $series = $sites->map(function (Site $site) use ($months) {
             // Calculate BWE for each month
             $bweData = $months->map(function ($month) use ($site) {
                 return $site->calculateMetric($site->id, $month, 'BWE');
             });
 
             return [
-                'label' => $site->location ?? "Site #{$site->id}",
+                'name' => $site->location ?? "Site #{$site->id}",
                 'data' => $bweData->toArray(),
-                'borderColor' => $this->randomColor(), // Unique color for each site
-                'fill' => false,
             ];
         });
 
         return [
-            'datasets' => $datasets->toArray(),
-            'labels' => $months->toArray(), // Months as X-axis labels
+            'chart' => [
+                'type' => 'line',
+                'height' => 400,
+                'zoom' => [
+                    'enabled' => false,
+                ],
+            ],
+            'series' => $series->toArray(),
+            'xaxis' => [
+                'categories' => $months->toArray(), // Months as X-axis labels
+            ],
+            'dataLabels' => [
+                'enabled' => true,
+            ],
+            'stroke' => [
+                'curve' => 'smooth',
+            ],
+            'title' => [
+                // 'text' => 'BWE by Site Over Time',
+                'align' => 'left',
+            ],
+            'legend' => [
+                'position' => 'top',
+            ],
         ];
     }
 
-    protected function getType(): string
+    protected function extraJsOptions(): ?\Filament\Support\RawJs
     {
-        return 'line';
-    }
+        return RawJs::make(<<<'JS'
+    {
 
-    /**
-     * Generate a random color for the chart line.
-     */
-    private function randomColor(): string
-    {
-        return sprintf('#%06X', mt_rand(0, 0xFFFFFF));
+        yaxis: {
+            labels: {
+                formatter: function (val, index) {
+                    return '$' + val
+                }
+            }
+        },
+
+        dataLabels: {
+            enabled: true,
+            formatter: function (val, opt) {
+                return  '$' + val
+            },
+
+        }
+    }
+    JS);
     }
 }

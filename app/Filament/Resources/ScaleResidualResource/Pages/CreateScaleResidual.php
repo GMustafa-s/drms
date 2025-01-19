@@ -1,16 +1,17 @@
 <?php
 
-namespace App\Filament\Resources\OilnGreaseResource\Pages;
+namespace App\Filament\Resources\ScaleResidualResource\Pages;
 
 use App\Filament\Resources\FeMnCountResource;
 use App\Filament\Resources\GasAnalysisResource;
 use App\Filament\Resources\OilAnalysisResource;
 use App\Filament\Resources\OilnGreaseResource;
+use App\Filament\Resources\ScaleResidualResource;
 use Filament\Resources\Pages\CreateRecord;
 
-class CreateOilnGrease extends CreateRecord
+class CreateScaleResidual extends CreateRecord
 {
-    protected static string $resource = OilnGreaseResource::class;
+    protected static string $resource = ScaleResidualResource::class;
 
     protected function getRedirectUrl(): string
     {

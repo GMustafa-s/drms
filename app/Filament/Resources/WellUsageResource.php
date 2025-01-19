@@ -113,7 +113,7 @@ class WellUsageResource extends Resource
                                                             $set('product_type', $product->productType->type ?? null); // Set related product type
                                                         }
                                                     })
-                                                    ->required(),                                                
+                                                    ->required(),
                                                 Forms\Components\Select::make('injection_location')
                                                     ->required()
                                                     ->searchable()
@@ -205,7 +205,7 @@ class WellUsageResource extends Resource
                 ]),
             ]);
 
-       
+
     }
 
     public static function table(Table $table): Table
@@ -228,12 +228,38 @@ class WellUsageResource extends Resource
 
                 BadgeColumn::make('monthly_cost')
                     ->label('Monthly Cost')
+                    ->money()
                     ->summarize([
                         Tables\Columns\Summarizers\Sum::make()->label("Total (sum)"),
-                        Range::make()->label("Range"),
-                        Average::make()->label("average"),
+                        //Range::make()->label("Range"),
+//                        Average::make()->label("average"),
                     ])
                     ->color('primary')
+                    ->sortable(),
+
+                BadgeColumn::make('bwe')
+                    ->label('$BW')
+                    ->money()
+                    ->color('primary')
+
+
+                    ->summarize([
+                        //Tables\Columns\Summarizers\Sum::make()->label("Total (sum)"),
+                        //Range::make()->label("Range"),
+                        Average::make()->label("average"),
+                    ])
+                    ->sortable(),
+
+                BadgeColumn::make('bowg')
+                    ->label('$BO')
+                    ->money()
+                    ->color('primary')
+
+                    ->summarize([
+                        Tables\Columns\Summarizers\Sum::make()->label("Total (sum)"),
+                        //Range::make()->label("Range"),
+                        //Average::make()->label("average"),
+                    ])
                     ->sortable(),
 
                 // TextColumn::make('production_location')
@@ -244,8 +270,8 @@ class WellUsageResource extends Resource
                 BadgeColumn::make('bopd')
                     ->summarize([
                         Tables\Columns\Summarizers\Sum::make()->label("Total (sum)"),
-                        Range::make()->label("Range"),
-                        Average::make()->label("average"),
+                        //Range::make()->label("Range"),
+                        //Average::make()->label("average"),
                     ])
                     ->label('BOPD')
                     ->color('warning')
@@ -254,8 +280,8 @@ class WellUsageResource extends Resource
                 BadgeColumn::make('mmcf')
                     ->summarize([
                         Tables\Columns\Summarizers\Sum::make()->label("Total (sum)"),
-                        Range::make()->label("Range"),
-                        Average::make()->label("average"),
+                        //Range::make()->label("Range"),
+                        //Average::make()->label("average"),
                     ])
                     ->label('MMCF')
                     ->color('warning')
@@ -264,11 +290,12 @@ class WellUsageResource extends Resource
                 BadgeColumn::make('bwpd')
                     ->summarize([
                         Tables\Columns\Summarizers\Sum::make()->label("Total (sum)"),
-                        Range::make()->label("Range"),
-                        Average::make()->label("average"),
+                        //Range::make()->label("Range"),
+                        //Average::make()->label("average"),
                     ])
                     ->label('BWPD')
                     ->color('warning')
+
                     ->sortable(),
 
                 TextColumn::make('product_type')
@@ -289,18 +316,18 @@ class WellUsageResource extends Resource
                 BadgeColumn::make('ppm')
                     ->label('Parts Per Million (PPM)')
                     ->summarize([
-                        Tables\Columns\Summarizers\Sum::make()->label("Total (sum)"),
-                        Range::make()->label("Range"),
-                        Average::make()->label("average"),
+                        //Tables\Columns\Summarizers\Sum::make()->label("Total (sum)"),
+                        //Range::make()->label("Range"),
+                        //Average::make()->label("average"),
                     ])
                     ->color('danger')
                     ->sortable(),
 
                 BadgeColumn::make('quarts_per_day')
                     ->summarize([
-                        Tables\Columns\Summarizers\Sum::make()->label("Total (sum)"),
-                        Range::make()->label("Range"),
-                        Average::make()->label("average"),
+                        //Tables\Columns\Summarizers\Sum::make()->label("Total (sum)"),
+                        //Range::make()->label("Range"),
+                        //Average::make()->label("average"),
                     ])
                     ->label('Quarts Per Day')
                     ->color('danger')
@@ -308,9 +335,9 @@ class WellUsageResource extends Resource
 
                 BadgeColumn::make('gallons_per_day')
                     ->summarize([
-                        Tables\Columns\Summarizers\Sum::make()->label("Total (sum)"),
-                        Range::make()->label("Range"),
-                        Average::make()->label("average"),
+                        //Tables\Columns\Summarizers\Sum::make()->label("Total (sum)"),
+                        //Range::make()->label("Range"),
+                        //Average::make()->label("average"),
                     ])
                     ->label('Gallons Per Day')
                     ->color('danger')
@@ -318,9 +345,9 @@ class WellUsageResource extends Resource
 
                 BadgeColumn::make('gallons_per_month')
                     ->summarize([
-                        Tables\Columns\Summarizers\Sum::make()->label("Total (sum)"),
-                        Range::make()->label("Range"),
-                        Average::make()->label("average"),
+                        //Tables\Columns\Summarizers\Sum::make()->label("Total (sum)"),
+                        //Range::make()->label("Range"),
+                        //Average::make()->label("average"),
                     ])
                     ->label('Gallons Per Month')
                     ->color('danger')
@@ -340,9 +367,9 @@ class WellUsageResource extends Resource
                     ->label('Deliveries (Gallons)')
                     ->color('success')
                     ->summarize([
-                        Tables\Columns\Summarizers\Sum::make()->label("Total (sum)"),
-                        Range::make()->label("Range"),
-                        Average::make()->label("average"),
+                        //Tables\Columns\Summarizers\Sum::make()->label("Total (sum)"),
+                        //Range::make()->label("Range"),
+                        //Average::make()->label("average"),
                     ])
                     ->sortable(),
 
@@ -350,36 +377,15 @@ class WellUsageResource extends Resource
                     ->label('Price Per Gallon')
                     ->color('primary')
                     ->summarize([
-                        Tables\Columns\Summarizers\Sum::make()->label("Total (sum)"),
-                        Range::make()->label("Range"),
-                        Average::make()->label("average"),
+                        //Tables\Columns\Summarizers\Sum::make()->label("Total (sum)"),
+                        //Range::make()->label("Range"),
+                        //Average::make()->label("average"),
                     ])
                     ->sortable(),
 
 
 
-                BadgeColumn::make('bwe')
-                    ->label('BWE')
-                    ->color('primary')
 
-
-                    ->summarize([
-                        Tables\Columns\Summarizers\Sum::make()->label("Total (sum)"),
-                        Range::make()->label("Range"),
-                        Average::make()->label("average"),
-                    ])
-                    ->sortable(),
-
-                BadgeColumn::make('bowg')
-                    ->label('BOWG')
-                    ->color('primary')
-
-                    ->summarize([
-                        Tables\Columns\Summarizers\Sum::make()->label("Total (sum)"),
-                        Range::make()->label("Range"),
-                        Average::make()->label("average"),
-                    ])
-                    ->sortable(),
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('well_id')
@@ -401,7 +407,7 @@ class WellUsageResource extends Resource
                     ->options(function () {
                         // Get the current tenant using Filament's getTenant method
                         $tenant = Filament::getTenant();
-            
+
                         // Fetch the sites related to the current tenant
                         return Site::where('company_id', $tenant->id)
                             ->pluck('location', 'id')
@@ -409,7 +415,7 @@ class WellUsageResource extends Resource
                     })
                     ->query(function ($query, $filter) {
                         $siteIds = $filter->getState();
-            
+
                         // Only apply the filter if values are selected
                         if (!empty($siteIds) && (!isset($siteIds['values']) || !empty($siteIds['values']))) {
                             $siteIds = Arr::flatten($siteIds);
@@ -417,7 +423,7 @@ class WellUsageResource extends Resource
                                 $query->whereIn('site_id', $siteIds);
                             });
                         }
-            
+
                         // Show all records if no filter is selected
                         return $query;
                     }),
@@ -433,18 +439,18 @@ class WellUsageResource extends Resource
                             $selectedMonth = $data['month'];
                             $startDate = Carbon::parse($selectedMonth)->startOfMonth();
                             $endDate = Carbon::parse($selectedMonth)->endOfMonth();
-                    
+
                             // \Log::info('Applying month filter', ['month' => $data['month']]);
-                    
+
                             return $query->whereBetween('created_at', [$startDate, $endDate]);
                         }
-                    
+
                         // \Log::info('No filter applied');
                         return $query; // Show all records if no filter is selected
                     })
-                    
+
                 ], layout: FiltersLayout::AboveContent)
-            
+
             ->actions([
                 //                Action::make('duplicate')
                 //                    ->label('Duplicate')
