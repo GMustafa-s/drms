@@ -21,6 +21,8 @@ class UsersReport extends Report
     public ?string $heading = "Well Usage Report";
     public ?string $subHeading = "Detailed report of well and its usage data";
 
+    protected static ?string $navigationLabel ='Well Report';
+
     public function header(Header $header): Header
     {
         return $header

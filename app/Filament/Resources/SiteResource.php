@@ -38,7 +38,10 @@ class SiteResource extends Resource
     protected static ?string $recordTitleAttribute = 'location';
     protected static ?string $navigationGroup = "Location Management";
     protected static ?string $navigationIcon = 'heroicon-o-map-pin';
-
+    public static function getNavigationBadge(): ?string
+    {
+        return static::getModel()::count();
+    }
 
     public static function getWidgets(): array
     {

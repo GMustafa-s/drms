@@ -24,7 +24,10 @@ class FeMnCountResource extends Resource
     protected static ?string $navigationGroup = "Well Management";
     protected static ?string $navigationParentItem ='Wells';
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
-
+    public static function getNavigationBadge(): ?string
+    {
+        return static::getModel()::count();
+    }
     public static function form(Form $form): Form
     {
         return $form
@@ -94,6 +97,7 @@ class FeMnCountResource extends Resource
             ->filters([
                 Tables\Filters\SelectFilter::make('well_id')
                     ->label('Select Well')
+                    ->multiple()
                     ->searchable()
                     ->preload()
                     ->options(function () {
@@ -102,6 +106,7 @@ class FeMnCountResource extends Resource
                             ->pluck('lease', 'id')
                             ->toArray();
                     })
+
             ], layout: FiltersLayout::AboveContent)
             ->actions([
                 Tables\Actions\ViewAction::make(),

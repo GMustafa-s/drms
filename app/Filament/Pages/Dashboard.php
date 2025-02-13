@@ -45,22 +45,22 @@ use Filament\Pages\Dashboard\Concerns\HasFiltersForm;
                             $this->dispatch('report_month_updated', $state);
                         }),
 
-                    ToggleButtons::make('Dashboard')
-                        ->label('Switch Dashboard')
-                        ->default('site')  // Ensure the state is correctly passed to the toggle
-                        ->reactive()  // Make it reactive
-                        ->inline()
-                        ->options([
-                            'site' => 'Site Overview',
-                            'company' => 'Company Overview',
-                        ])
-                        ->icons([
-                            'site' => 'heroicon-o-pencil',
-                            'company' => 'heroicon-o-clock',
-                        ])
-                        ->afterStateUpdated(function ($state) {
-                            $this->dashboardState = $state;
-                        }),
+//                    ToggleButtons::make('Dashboard')
+//                        ->label('Switch Dashboard')
+//                        ->default('site')  // Ensure the state is correctly passed to the toggle
+//                        ->reactive()  // Make it reactive
+//                        ->inline()
+//                        ->options([
+//                            'site' => 'Site Overview',
+//                            'company' => 'Company Overview',
+//                        ])
+//                        ->icons([
+//                            'site' => 'heroicon-o-pencil',
+//                            'company' => 'heroicon-o-clock',
+//                        ])
+//                        ->afterStateUpdated(function ($state) {
+//                            $this->dashboardState = $state;
+//                        }),
 
                     Select::make('site_id')
                         ->label('Filter by Site')
@@ -72,7 +72,7 @@ use Filament\Pages\Dashboard\Concerns\HasFiltersForm;
                                 ->pluck('location', 'id')
                                 ->toArray();
                         })
-                        ->visible($this->dashboardState === 'site'),  // Show based on Livewire state
+
                 ]),
         ]);
     }
@@ -87,23 +87,30 @@ use Filament\Pages\Dashboard\Concerns\HasFiltersForm;
      }
 
      public function getWidgets(): array
-    {
-        // Dynamically load widgets based on the current dashboard state
-        return match ($this->dashboardState) {
-            'company' => [
-                User::class,
-                Chart1::class,
-                MonthlyCostBySiteChart::class,
-                WellUsage::class,
-            ],
-            'site' => [
-                MonthlyCostByWellChart::class,
-                MonthlyCostbyProduct::class,
-                BOWGBySiteOverTimeChart::class,
-                BWEBySiteOverTimeChart::class,
-            ]
-        };
-    }
+     {
+         // Dynamically load widgets based on the current dashboard state
+//        return match ($this->dashboardState) {
+//            'company' => [
+//                User::class,
+//                Chart1::class,
+//                MonthlyCostBySiteChart::class,
+//                WellUsage::class,
+//            ],
+//            'site' => [
+//                MonthlyCostByWellChart::class,
+//                MonthlyCostbyProduct::class,
+//                BOWGBySiteOverTimeChart::class,
+//                BWEBySiteOverTimeChart::class,
+//            ]
+//        };
+
+         return [
+             MonthlyCostByWellChart::class,
+             MonthlyCostbyProduct::class,
+             BOWGBySiteOverTimeChart::class,
+             BWEBySiteOverTimeChart::class,
+         ];
+     }
 
     // This method will mount the component
     public function mount(): void
@@ -114,7 +121,7 @@ use Filament\Pages\Dashboard\Concerns\HasFiltersForm;
     // // Livewire hook to hydrate the component
     // public function hydrate(): void
     // {
-    //     $this->dashboardState ??= 'site'; 
+    //     $this->dashboardState ??= 'site';
     // }
 
 }

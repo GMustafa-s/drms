@@ -23,7 +23,10 @@ class GasAnalysisResource extends Resource
     protected static ?string $navigationGroup = "Well Management";
     protected static ?string $navigationParentItem ='Wells';
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
-
+    public static function getNavigationBadge(): ?string
+    {
+        return static::getModel()::count();
+    }
     public static function form(Form $form): Form
     {
         return $form

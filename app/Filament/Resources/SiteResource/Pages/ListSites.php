@@ -17,10 +17,5 @@ class ListSites extends ListRecords
         ];
     }
 
-    protected function getFooterWidgets(): array
-    {
-        return [
-            SiteResource\Widgets\Sites::class
-        ];
-    }
+
 }

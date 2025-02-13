@@ -21,6 +21,10 @@ class UserResource extends Resource
     protected static ?int $navigationSort = 8;
     protected static ?string $navigationIcon = 'heroicon-o-user';
     protected static bool $isScopedToTenant = false;
+    public static function getNavigationBadge(): ?string
+    {
+        return static::getModel()::count();
+    }
     public static function form(Form $form): Form
     {
         return $form
@@ -34,7 +38,9 @@ class UserResource extends Resource
 
                 Forms\Components\TextInput::make('password')
                     ->password()
-                    ->required(),
+                    ->required(fn ($livewire) => $livewire instanceof \Filament\Resources\Pages\CreateRecord)
+                    ->hidden(fn ($livewire) => $livewire instanceof \Filament\Resources\Pages\EditRecord)
+                    ->maxLength(255),
 
                 // Hidden field to auto-assign the current user's company
                 Forms\Components\Select::make('companies')
@@ -47,7 +53,7 @@ class UserResource extends Resource
                     ->options(Company::all()->pluck('name', 'id'))
                     ->required(),
                 // Add this MultiSelect field for Role Assignment
-                Forms\Components\MultiSelect::make('roles')
+                Forms\Components\Select::make('roles')
                     ->label('Assign Roles')
                     ->multiple()
                     ->searchable()

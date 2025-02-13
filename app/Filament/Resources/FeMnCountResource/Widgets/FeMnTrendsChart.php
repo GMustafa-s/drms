@@ -5,116 +5,221 @@ namespace App\Filament\Resources\FeMnCountResource\Widgets;
 use App\Models\FeMnCount;
 use App\Models\Well;
 use Filament\Facades\Filament;
+use Filament\Forms\Components\Grid;
+use Filament\Forms\Components\Select;
 use Filament\Support\RawJs;
+use Illuminate\Support\Facades\Log;
 use Leandrocfe\FilamentApexCharts\Widgets\ApexChartWidget;
+use Carbon\Carbon;
 
 class FeMnTrendsChart extends ApexChartWidget
 {
-    protected static ?string $heading = 'Fe & Mn Trends Over Time';
+    // Add the selectedWells property
+    public ?array $selectedWells = [];
 
+    // Add a property to accept the wellIds filter from the table
+    public ?array $wellIds = [];
+
+    protected static ?string $heading = 'Fe & Mn Trends Over Time';
 
     public function getColumnSpan(): int
     {
         return 12;
     }
 
-    // Chart options
+    // Add a listener to refresh the chart
+    protected function getListeners(): array
+    {
+        return [
+            'tableFiltersChanged' => '$refresh',
+        ];
+    }
+
     protected function getOptions(): array
     {
-        $tenantId = Filament::getTenant()->id; // Assuming tenant is based on `company_id`
+        try {
+            // Log the current state of selectedWells and wellIds
+            Log::info('Selected Wells (Chart Widget):', $this->selectedWells);
+            Log::info('Table Filter (Chart Widget):', ['wellIds' => $this->wellIds]);
 
-        $data = FeMnCount::query()
-            ->where('company_id', $tenantId)
-            ->with('Well') // Load well relationships
-            ->get()
-            ->groupBy('well_id'); // Group by wells
+            $tenantId = Filament::getTenant()->id;
 
-        $series = []; // Data series for the chart
-        $labels = []; // Shared labels (x-axis)
+            // Fetch data with well relationships
+            $query = FeMnCount::where('company_id', $tenantId)
+                ->with('Well:id,lease');
 
-        $colors = ['#FF5733', '#33FF57', '#3357FF', '#FFC300', '#DAF7A6']; // Color palette for wells
-        $colorIndex = 0;
+            // Apply well filter if selected in the widget
+            if (!empty($this->selectedWells)) {
+                $selectedWellIds = array_map('intval', (array)$this->selectedWells);
+                Log::info('Filtering by Wells (Widget):', $selectedWellIds); // Log the applied filter
+                $query->whereIn('well_id', $selectedWellIds);
+            }
 
-        foreach ($data as $wellId => $records) {
-            // Sort records by `sample_date`
-            $records = $records->sortBy('sample_date');
+            // Apply table filter (wellIds) if set
+            if (!empty($this->wellIds)) {
+                // Extract the filter value from the wellIds object
+                $wellIds = is_array($this->wellIds) && isset($this->wellIds['values'])
+                    ? array_map('intval', (array)$this->wellIds['values'])
+                    : [];
 
-            // Extract `sample_date` as labels
-            $labels = $records->pluck('sample_date')->map(fn($date) => \Carbon\Carbon::parse($date)->format('Y-m-d'))->toArray();
+                Log::info('Filtering by Table Filter (wellIds):', ['wellIds' => $wellIds]); // Log the applied filter
+                $query->whereIn('well_id', $wellIds);
+            }
 
-            // Fe data
-            $series[] = [
-                'name' => Well::findOrFail($wellId)->lease . " (Fe)",
-                'data' => $records->pluck('fe')->toArray(),
-                'color' => $colors[$colorIndex % count($colors)],
-            ];
+            $data = $query->get()->groupBy('well_id');
 
-            // Mn data
-            $series[] = [
-                'name' => Well::findOrFail($wellId)->lease . " (Mn)",
-                'data' => $records->pluck('mn')->toArray(),
-                'color' => $this->adjustColorShade($colors[$colorIndex % count($colors)], 0.7), // Shade adjustment
-            ];
+            if ($data->isEmpty()) {
+                Log::warning('No Fe/Mn data available for selected wells'); // Log empty data
+                return [
+                    'chart' => [
+                        'type' => 'line',
+                        'height' => 350,
+                    ],
+                    'series' => [],
+                    'noData' => [
+                        'text' => 'No Fe/Mn data available : Please select well from the filters',
+                        'align' => 'center',
+                        'verticalAlign' => 'middle',
+                        'style' => [
+                            'color' => '#373d3f',
+                            'fontSize' => '14px',
+                        ]
+                    ]
+                ];
+            }
 
-            $colorIndex++;
-        }
+            $series = [];
+            $labels = [];
+            $colors = ['#FF5733', '#33FF57', '#3357FF', '#FFC300', '#DAF7A6'];
+            $colorIndex = 0;
 
-        return [
-            'chart' => [
-                'type' => 'line',
-                'height' => 350,
-                'toolbar' => [
-                    'show' => true,
+            // Cache well names to avoid multiple DB queries
+            $wellNames = Well::whereIn('id', $data->keys())->pluck('lease', 'id');
+
+            foreach ($data as $wellId => $records) {
+                $records = $records->sortBy('sample_date');
+
+                // Extract sample dates (ensuring unique labels)
+                if (empty($labels)) {
+                    $labels = $records->pluck('sample_date')->map(fn($date) => Carbon::parse($date)->format('Y-m-d'))->toArray();
+                }
+
+                $wellName = $wellNames[$wellId] ?? "Unknown Well";
+
+                // Fe data series
+                $series[] = [
+                    'name' => "{$wellName} (Fe)",
+                    'data' => $records->pluck('fe')->toArray(),
+                    'color' => $colors[$colorIndex % count($colors)],
+                ];
+
+                // Mn data series
+                $series[] = [
+                    'name' => "{$wellName} (Mn)",
+                    'data' => $records->pluck('mn')->toArray(),
+                    'color' => $this->adjustColorShade($colors[$colorIndex % count($colors)], 0.7),
+                ];
+
+                $colorIndex++;
+            }
+
+            return [
+                'chart' => [
+                    'type' => 'line',
+                    'height' => 350,
+                    'toolbar' => ['show' => true],
                 ],
-            ],
-            'series' => $series,
-            'xaxis' => [
-                'categories' => $labels, // X-axis labels
-            ],
-            'colors' => array_column($series, 'color'), // Ensure chart uses these colors
+                'series' => $series,
+                'xaxis' => [
+                    'categories' => $labels,
+                    'title' => ['text' => 'Sample Date'],
+                ],
+                'colors' => array_column($series, 'color'),
+                'tooltip' => ['enabled' => true],
+                'dataLabels' => ['enabled' => false],
+            ];
+        } catch (\Exception $e) {
+            Log::error('Error generating Fe/Mn chart:', ['error' => $e->getMessage()]); // Log errors
+            return [
+                'chart' => [
+                    'type' => 'line',
+                    'height' => 350,
+                ],
+                'series' => [],
+                'noData' => [
+                    'text' => 'Error generating chart: ' . $e->getMessage(),
+                    'align' => 'center',
+                    'verticalAlign' => 'middle',
+                    'style' => [
+                        'color' => 'red',
+                        'fontSize' => '14px',
+                    ]
+                ]
+            ];
+        }
+    }
+
+    protected function getFormSchema(): array
+    {
+        return [
+
+                    Select::make('selectedWells')
+                        ->label('Filter by Well')
+                        ->multiple()
+                        ->options(function () {
+                            $tenant = Filament::getTenant();
+                            return Well::where('company_id', $tenant->id)
+                                ->pluck('lease', 'id');
+                        })
+                        ->placeholder('All Wells')
+                        ->columnSpan(4)
+                        ->live() // Automatically updates the chart when the filter changes
+                        ->default($this->selectedWells) // Set default values
+                        ->afterStateUpdated(function ($state) {
+                            // Update the property directly
+                            $this->selectedWells = $state;
+                            Log::info('Filter updated:', ['selectedWells' => $state]); // Log filter changes
+                        })
+
         ];
     }
 
     /**
-     * Adjust the shade of a color (e.g., for Mn to be a lighter shade of Fe's color).
+     * Adjusts a color shade to make Mn slightly lighter than Fe.
      */
-    private function adjustColorShade(string $hexColor, float $percent): string
+    private function adjustColorShade(string $hexColor, float $factor): string
     {
-        // Convert HEX to RGB
-        $hex = str_replace('#', '', $hexColor);
-        $r = hexdec(substr($hex, 0, 2));
-        $g = hexdec(substr($hex, 2, 2));
-        $b = hexdec(substr($hex, 4, 2));
+        [$r, $g, $b] = array_map('hexdec', str_split(ltrim($hexColor, '#'), 2));
 
-        // Adjust color by percentage
-        $r = min(255, max(0, $r + ($percent * (255 - $r))));
-        $g = min(255, max(0, $g + ($percent * (255 - $g))));
-        $b = min(255, max(0, $b + ($percent * (255 - $b))));
+        $r = (int) max(0, min(255, $r + ($factor * (255 - $r))));
+        $g = (int) max(0, min(255, $g + ($factor * (255 - $g))));
+        $b = (int) max(0, min(255, $b + ($factor * (255 - $b))));
 
         return sprintf('#%02x%02x%02x', $r, $g, $b);
     }
 
-    protected function extraJsOptions(): ?\Filament\Support\RawJs
+    protected function extraJsOptions(): ?RawJs
     {
         return RawJs::make(<<<'JS'
-    {
-
-        yaxis: {
-            labels: {
-                formatter: function (val, index) {
-                    return '$' + val
+        {
+            tooltip: {
+                y: {
+                    formatter: function (val) {
+                        return val.toFixed(2) + ' ppm';
+                    }
+                }
+            },
+            yaxis: {
+                labels: {
+                    formatter: function (val) {
+                        return val.toFixed(2) + ' ppm';
+                    }
+                },
+                title: {
+                    text: 'Concentration (ppm)'
                 }
             }
-        },
-
-        dataLabels: {
-            enabled: true,
-            formatter: function (val, opt) {
-                return  '$' + val
-            },
-
         }
-    }
-    JS);
+        JS);
     }
 }
