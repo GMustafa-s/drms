@@ -11,19 +11,16 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Create companies table
         Schema::create('companies', function (Blueprint $table) {
-            $table->id(); // BIGINT UNSIGNED
+            $table->id();
             $table->string('name');
             $table->string('slug');
             $table->timestamps();
         });
-
-        // Create pivot table for companies and users
         Schema::create('company_user', function (Blueprint $table) {
-            $table->id(); // BIGINT UNSIGNED
-            $table->foreignId('company_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->id();
+            $table->foreignId('company_id')->constrained();
+            $table->foreignId('user_id')->constrained();
             $table->timestamps();
         });
     }
@@ -33,7 +30,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('company_user');
         Schema::dropIfExists('companies');
+        Schema::dropIfExists('team_user');
     }
 };
